@@ -14,6 +14,8 @@ if ( !yablfile ) {
 
 tree = require( yablfile );
 
-tree.watch( function ( dir ) {
-	console.log( 'dir', dir );
-});
+yabl.serve( tree, { port: 4567 });
+
+// tree.watch( function ( dir ) {
+// 	console.log( 'dir', dir );
+// });
