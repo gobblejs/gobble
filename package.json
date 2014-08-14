@@ -13,6 +13,8 @@
     "mkdirp": "~0.5.0",
     "glob": "~4.0.5",
     "chokidar": "~0.8.2",
-    "minimatch": "~1.0.0"
+    "minimatch": "~1.0.0",
+    "mime": "^1.2.11",
+    "lodash.template": "^2.4.1"
   }
 }
