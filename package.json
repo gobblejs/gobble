@@ -1,0 +1,18 @@
+{
+  "name": "yabl",
+  "description": "yet another build library",
+  "version": "0.1.0",
+  "preferGlobal": true,
+  "bin": {
+    "yabl": "cli/index.js"
+  },
+  "dependencies": {
+    "findup-sync": "~0.1.3",
+    "graceful-fs": "~3.0.2",
+    "promo": "~0.1.1",
+    "mkdirp": "~0.5.0",
+    "glob": "~4.0.5",
+    "chokidar": "~0.8.2",
+    "minimatch": "~1.0.0"
+  }
+}
