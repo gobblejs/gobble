@@ -12,11 +12,8 @@ if ( !yablfile ) {
 	throw new Error( 'Could not find a yablfile.js!' );
 }
 
-yabl.CWD = path.dirname( yablfile );
-
 tree = require( yablfile );
 
 tree.watch( function ( dir ) {
 	console.log( 'dir', dir );
 });
-//tree.export( '.yabble' );
