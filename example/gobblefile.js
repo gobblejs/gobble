@@ -7,5 +7,5 @@ src = gobble( 'src' );
 
 module.exports = gobble([
 	src.exclude( 'scss/**' ).map( replace, { 'TITLE' : 'woop woop!' }),
-	src.transform( compileSass, { src: 'scss/main.scss', dest: 'min.css' })
+	src.transform( compileSass, { src: 'scss/main.scss', dest: 'min.css' }).export( 'tmp-scss',  { clean: true })
 ]);
