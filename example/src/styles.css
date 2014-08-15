@@ -1,3 +1,8 @@
 body {
 	color: red;
+	font-family: 'Helvetica Neue';
+}
+
+h1 {
+	font-weight: 200;
 }

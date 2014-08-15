@@ -1,20 +1,12 @@
-var yabl = require( 'yabl' ),
-	path = require( 'path' ),
+var yabl = require( 'yabl' );
 
-	src, styles, merged;
-
-tree = yabl( 'src/**' );
-
-styles = yabl( 'src/scss/**/*.scss' )
+var styles = yabl( 'src/scss/**/*.scss' )
 	.transform( compileSass, { src: 'src/scss/main.scss', dest: 'min.css' });
 
-merged = yabl([ tree, styles ]);
+
 
 function compileSass ( srcDir, destDir, options, done ) {
 	var sass = require( 'node-sass' );
-
-	console.log( 'srcDir', srcDir );
-	console.log( 'options', options );
 
 	sass.render({
 		file: path.join( srcDir, options.src ),
@@ -24,6 +16,3 @@ function compileSass ( srcDir, destDir, options, done ) {
 		}
 	});
 }
-
-
-module.exports = merged;
