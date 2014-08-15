@@ -16,7 +16,6 @@
     "minimatch": "~1.0.0",
     "mime": "^1.2.11",
     "promise-map-series": "~0.2.0",
-    "longjohn": "~0.2.4",
     "rimraf": "~2.2.8"
   }
 }
