@@ -2,7 +2,7 @@
 
 var findup = require( 'findup-sync' ),
 	gobble = require( '../lib' ),
-	helpers = gobble.helpers,
+	file = gobble.file,
 	path = require( 'path' ),
 	Promise = require( 'promo' ).Promise,
 	cwd = require( '../lib/cwd' ),
@@ -21,11 +21,11 @@ tree = require( gobblefile );
 
 // Clear out the .gobble folder
 var gobbleDir = path.join( cwd(), '.gobble' );
-cleanup = helpers.mkdirp( gobbleDir ).then( function () {
-	return helpers.readdir( gobbleDir ).then( function ( files ) {
+cleanup = file.mkdirp( gobbleDir ).then( function () {
+	return file.readdir( gobbleDir ).then( function ( files ) {
 		console.log( 'Removing %s files from .gobble folder', files.length );
-		var promises = files.map( function ( file ) {
-			return helpers.rimraf( gobbleDir, file );
+		var promises = files.map( function ( filename ) {
+			return file.rimraf( gobbleDir, filename );
 		});
 
 		return Promise.all( promises );
@@ -36,7 +36,3 @@ cleanup.then( function () {
 	console.log( 'Removed all files. Serving...' );
 	gobble.serve( tree, { port: 4567 });
 });
-
-// tree.watch( function ( dir ) {
-// 	console.log( 'dir', dir );
-// });
