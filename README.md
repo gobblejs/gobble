@@ -15,6 +15,81 @@ And even if your needs *are* met by plugins, suddenly you're dependent on an eco
 Gobble will change all that. You're going to love it. If I can get it to work. Stay tuned.
 
 
+## Installation
+
+*Here be dragons! This is work-in-progress software. If you want to try it out anyway, here's how.*
+
+Install gobble globally (this makes it available as a command line tool):
+
+```bash
+npm i -g gobble
+```
+
+Then, within your project, install gobble locally
+
+```bash
+cd path/to/myproject
+npm i -D gobble      # -D is short for --save-dev
+```
+
+## Usage
+
+Your project should have a **gobblefile.js**:
+
+```js
+var gobble = require( 'gobble' ),
+    concat = require( 'gobble-concat' ),
+    uglify = require( 'gobble-uglify' );
+
+var src = gobble( 'src' );
+
+module.exports = gobble([
+  src.include( '**/*.js' ).transform( concat, { dest: 'min.js' }).transform( uglify ),
+  src.exclude( '**/*.js' )
+]);
+```
+
+### tree = gobble( 'foo' )
+
+Returns a tree object representing the contents of the 'foo' directory.
+
+### tree = gobble([ tree1, tree2[, ...treeN] ])
+
+Returns the result of merging the input trees. Later files overwrite earlier ones.
+
+### tree2 = tree1.transform( transformer, options )
+
+Returns a tree that is the result of applying `transformer` to `tree1`. The `transformer` function takes four arguments - `inputDir`, `outputDir`, `options`, and `done`:
+
+* `inputDir` - the folder to read files from
+* `outputDir` - the folder to write files to
+* `options` - the options passed into the `transform` method
+* `done` - a function that you must call once you've finished writing files. If an error occurs, call `done(error)`, otherwise pass no arguments.
+
+Asynchronous operations are preferred. `gobble.file` contains a bunch of useful filesystem helpers that return promises, which help deal with node callback hell.
+
+### tree.export( 'dest'[, options] )
+
+Sometimes it's useful, for debugging purposes, to export part of your build in order to inspect it. This method will continuously write the contents of `tree` to `'dest'` whenever they change, as long as gobble is running. It returns `this`, so it doesn't affect the build in any way - it's just a convenient way to see what's going on.
+
+
+## Built-in transforms
+
+There are a handful of built-in transforms:
+
+### tree.include( pattern )
+
+Filters out any files that don't match `pattern`.
+
+### tree.exclude( pattern )
+
+Opposite of `tree.include(pattern)`.
+
+### tree.map( fn[, options] )
+
+For one-to-one replacements (e.g. transpiling coffeescript). `fn` is a function that takes two arguments - `content` and `options`, where `content` is the contents of the file to process, and `options` is the options argument passed into `map`. The function must return the replacement content.
+
+
 ## Sneak preview
 
 A common build task is to compile some .sass files to .css. For context, here's how you'd write that plugin for existing build tools:
