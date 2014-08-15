@@ -1,2 +1,2 @@
-require( 'superstack' );
+require( 'longjohn' );
 module.exports = require( './lib' );

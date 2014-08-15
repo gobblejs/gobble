@@ -1,26 +1,16 @@
 var yabl = require( 'yabl' ),
 	path = require( 'path' ),
 
+	compileSass = require( './yabl-transformers/compileSass' ),
+
 	src, styles, merged;
 
-tree = yabl( 'src/**' ).include( '**/README.md' );
+src = yabl( 'src' );
 
-styles = yabl( 'src/scss/**/*.scss' )
-	.transform( compileSass, { src: 'src/scss/main.scss', dest: 'min.css' });
-
-merged = yabl([ tree, styles ]);
-
-function compileSass ( srcDir, destDir, options, done ) {
-	var sass = require( 'node-sass' );
-
-	sass.render({
-		file: path.join( srcDir, options.src ),
-		success: function ( css ) {
-			yabl.helpers.write( destDir, options.dest, css ).then( done );
-		}
-	});
-}
+tree = yabl([
+	src.exclude( 'scss/**' ),
+	src.transform( compileSass, { src: 'scss/main.scss', dest: 'min.css' })
+]);
 
 
-module.exports = merged;
-//module.exports = tree;
+module.exports = tree;
