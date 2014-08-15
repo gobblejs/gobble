@@ -1,10 +1,10 @@
 {
-  "name": "yabl",
-  "description": "yet another build library",
+  "name": "gobble",
+  "description": "The last build tool you'll ever need",
   "version": "0.1.0",
   "preferGlobal": true,
   "bin": {
-    "yabl": "cli/index.js"
+    "gobble": "cli/index.js"
   },
   "dependencies": {
     "findup-sync": "~0.1.3",

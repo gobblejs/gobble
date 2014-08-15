@@ -1,36 +1,40 @@
 #!/usr/bin/env node
 
 var findup = require( 'findup-sync' ),
-	yabl = require( '../lib' ),
+	gobble = require( '../lib' ),
+	helpers = gobble.helpers,
 	path = require( 'path' ),
 	Promise = require( 'promo' ).Promise,
 	cwd = require( '../lib/cwd' ),
-	yablfile,
+	debug = require( '../lib/utils/debug' ),
+	gobblefile,
 	tree,
 	cleanup;
 
-yablfile = findup( 'yablfile.js', { nocase: true });
+gobblefile = findup( 'gobblefile.js', { nocase: true });
 
-if ( !yablfile ) {
-	throw new Error( 'Could not find a yablfile.js!' );
+if ( !gobblefile ) {
+	throw new Error( 'Could not find a gobblefile.js!' );
 }
 
-tree = require( yablfile );
+tree = require( gobblefile );
 
-// Clear out the .yabl folder
-var yablDir = path.join( cwd(), '.yabl' );
-cleanup = yabl.helpers.readdir( yablDir ).then( function ( files ) {
-	console.log( 'Removing %s files from .yabl folder', files.length );
-	var promises = files.map( function ( file ) {
-		return yabl.helpers.rimraf( yablDir, file );
+// Clear out the .gobble folder
+var gobbleDir = path.join( cwd(), '.gobble' );
+cleanup = helpers.mkdirp( gobbleDir ).then( function () {
+	return helpers.readdir( gobbleDir ).then( function ( files ) {
+		console.log( 'Removing %s files from .gobble folder', files.length );
+		var promises = files.map( function ( file ) {
+			return helpers.rimraf( gobbleDir, file );
+		});
+
+		return Promise.all( promises );
 	});
-
-	return Promise.all( promises );
-});
+}).catch( debug );
 
 cleanup.then( function () {
 	console.log( 'Removed all files. Serving...' );
-	yabl.serve( tree, { port: 4567 });
+	gobble.serve( tree, { port: 4567 });
 });
 
 // tree.watch( function ( dir ) {
