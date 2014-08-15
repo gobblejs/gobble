@@ -15,7 +15,6 @@
     "chokidar": "^0.8.4",
     "minimatch": "~1.0.0",
     "mime": "^1.2.11",
-    "lodash.template": "^2.4.1",
     "promise-map-series": "~0.2.0",
     "longjohn": "~0.2.4",
     "rimraf": "~2.2.8"

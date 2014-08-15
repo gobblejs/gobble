@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= url %></title>
+    <title>${url}</title>
     <style>
       body {
         font-family: 'Helvetica Neue','Arial',sans-serif;
@@ -59,14 +59,10 @@
     </style>
   </head>
   <body>
-    <h1><%= url %></h1>
+    <h1>${url}</h1>
     <ul>
       <li class='parent'><a href='..'>parent directory</li>
-      <% items.forEach( function ( item ) { %>
-        <li class='<%= item.type %>'>
-          <a href='<%= item.href %>'><%= item.href %></a>
-        </li>
-      <% }) %>
+      ${items}
     </ul>
   </body>
 </html>

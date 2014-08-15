@@ -2,7 +2,7 @@
 
 **the last build tool you'll ever need**
 
-Gobble an experimental, work-in-progress, so-far-completely-unusable general-purpose build tool. Basically I'm just squatting on the name But watch this space.
+Gobble an experimental, work-in-progress, so-far-completely-unusable general-purpose build tool. Basically I'm just squatting on the name. But watch this space.
 
 # Why another build tool?
 
