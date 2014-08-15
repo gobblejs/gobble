@@ -32,6 +32,13 @@ cd path/to/myproject
 npm i -D gobble      # -D is short for --save-dev
 ```
 
+Once you've installed everything and set up your project, run gobble from the command line - this will serve your project to [localhost:4567](http://localhost:4567) and keep it updated as the source files change:
+
+```bash
+gobble
+```
+
+
 ## Usage
 
 Your project should have a **gobblefile.js**:
