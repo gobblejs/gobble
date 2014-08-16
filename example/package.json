@@ -1,0 +1,8 @@
+{
+  "name": "gobble-example",
+  "description": "placeholder package.json file so we can futz around with dependencies",
+  "version": "0.1.0",
+  "devDependencies": {
+    "gobble": "~0.1.2"
+  }
+}

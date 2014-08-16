@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "preferGlobal": true,
   "bin": {
     "gobble": "cli/index.js"
@@ -17,5 +17,10 @@
     "mime": "^1.2.11",
     "promise-map-series": "~0.2.0",
     "rimraf": "~2.2.8"
-  }
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "cli"
+  ]
 }
