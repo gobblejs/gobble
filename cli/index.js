@@ -55,4 +55,4 @@ cleanup().then( function () {
 		delete require.cache[ gobblefile ];
 		server = gobble.serve( gobble( require( gobblefile ) ), { port: 4567 });
 	}
-});
+}).catch( debug );
