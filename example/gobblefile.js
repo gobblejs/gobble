@@ -1,11 +1,9 @@
-var gobble = require( 'gobble' ),
-	replace = require( './gobblers/replace' ),
-	src;
+var gobble = require( 'gobble' );
 
-src = gobble( 'src' );
+var src = gobble( 'src' );
 
 module.exports = [
-	src.exclude( 'scss/**' ).map( replace, { 'TITLE' : 'woop woop!' }),
+	src.exclude( 'scss/**' ).map( 'replace', { 'TITLE' : 'woop woop!' }),
 	src.transform( 'sass', { src: 'scss/main.scss', dest: 'min.css' }),
 	gobble( 'coffee' ).map( 'coffee' ),
 	gobble( 'js' ).map( 'esnext' ),
