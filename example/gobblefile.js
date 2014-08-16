@@ -9,5 +9,5 @@ module.exports = [
 	src.transform( 'sass', { src: 'scss/main.scss', dest: 'min.css' }),
 	gobble( 'coffee' ).map( 'coffee' ),
 	gobble( 'js' ).map( 'esnext' ),
-	gobble( 'data' ).transform( 'spelunk' )
+	gobble( 'data' ).transform( 'spelunk', { dest: 'data5.json' })
 ];
