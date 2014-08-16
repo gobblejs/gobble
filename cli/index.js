@@ -34,5 +34,5 @@ cleanup = file.mkdirp( gobbleDir ).then( function () {
 
 cleanup.then( function () {
 	console.log( 'Removed all files. Serving...' );
-	gobble.serve( tree, { port: 4567 });
+	gobble.serve( gobble( tree ), { port: 4567 });
 });
