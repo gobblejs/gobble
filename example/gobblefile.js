@@ -4,8 +4,9 @@ var gobble = require( 'gobble' ),
 
 src = gobble( 'src' );
 
-module.exports = gobble([
+module.exports = [
 	src.exclude( 'scss/**' ).map( replace, { 'TITLE' : 'woop woop!' }),
 	src.transform( 'sass', { src: 'scss/main.scss', dest: 'min.css' }),
-	gobble( 'coffee' ).map( 'coffee' )
-]);
+	gobble( 'coffee' ).map( 'coffee' ),
+	gobble( 'js' ).map( 'esnext' )
+];
