@@ -5,54 +5,37 @@ var findup = require( 'findup-sync' ),
 	file = gobble.file,
 	path = require( 'path' ),
 	Promise = require( 'promo' ).Promise,
-	cwd = require( '../lib/cwd' ),
+	config = require( '../lib/config' ),
 	debug = require( '../lib/utils/debug' ),
+	parseOptions = require( './utils/parseOptions' ),
+	serve = require( './serve' ),
+	build = require( './build' ),
+	help = require( './help' ),
 	gobblefile,
-	tree,
-	cleanup;
+	tree;
 
-gobblefile = findup( 'gobblefile.js', { nocase: true });
+var command = parseOptions({
+	p: 'port',
+	h: 'help',
+	f: 'force',
+	e: 'env'
+});
 
-if ( !gobblefile ) {
-	throw new Error( 'Could not find a gobblefile.js!' );
+if ( command.options.help ) {
+	return help( command );
 }
 
-// Clear out the .gobble folder
-var gobbledir = path.join( cwd(), '.gobble' );
+// Execute command
+if ( command.args[0] === 'build' ) {
+	gobble.env = command.options.env || 'production';
+	gobble.isBuild = true;
+	return build( command );
+}
 
-cleanup = function () {
-	return file.mkdirp( gobbledir ).then( function () {
-		return file.readdir( gobbledir ).then( function ( files ) {
-			console.log( 'GOBBLE: removing %s files from .gobble folder\n', files.length );
-			var promises = files.map( function ( filename ) {
-				return file.rimraf( gobbledir, filename );
-			});
+if ( !command.args[0] || command.args[0] === 'serve' ) {
+	gobble.env = command.options.env || 'development';
+	gobble.isBuild = false;
+	return serve( command );
+}
 
-			return Promise.all( promises );
-		});
-	});
-};
-
-cleanup().then( function () {
-	var server, watcher;
-
-	console.log( 'GOBBLE: removed temporary files. serving...\n' );
-
-	server = gobble.serve( gobble( require( gobblefile ) ), { port: 4567 });
-
-	watcher = require( 'chokidar' ).watch( gobblefile, {
-		ignoreInitial: true
-	});
-
-	watcher.on( 'change', function () {
-		console.log( 'GOBBLE: gobblefile changed, restarting server...\n' );
-		cleanup().then( function () {
-			server.close().then( restart, restart );
-		}).catch( debug );
-	});
-
-	function restart () {
-		delete require.cache[ gobblefile ];
-		server = gobble.serve( gobble( require( gobblefile ) ), { port: 4567 });
-	}
-}).catch( debug );
+return help( command );
