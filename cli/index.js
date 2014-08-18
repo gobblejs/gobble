@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var findup = require( 'findup-sync' ),
-	gobble = require( '../lib' ),
+	gobble = require( '../lib/index' ),
 	file = gobble.file,
 	path = require( 'path' ),
 	Promise = require( 'promo' ).Promise,

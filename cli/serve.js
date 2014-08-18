@@ -1,6 +1,6 @@
 module.exports = function ( command ) {
 	var gobble = require( '../lib' ),
-		cleanup = require( './utils/cleanup' ),
+		cleanup = require( '../lib/utils/cleanup' ),
 		config = require( '../lib/config' ),
 		logger = require( '../lib/logger' );
 
