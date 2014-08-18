@@ -7,5 +7,7 @@ module.exports = [
 	src.transform( 'sass', { src: 'scss/main.scss', dest: 'min.css' }),
 	gobble( 'coffee' ).map( 'coffee' ),
 	gobble( 'js' ).map( 'esnext' ),
-	gobble( 'data' ).transform( 'spelunk', { dest: 'data5.json' })
+	gobble( 'data' ).transform( 'spelunk', { dest: 'data5.json' }),
+	gobble( 'es6' ).map( 'esperanto', { type: 'amd', defaultOnly: true }),
+	gobble( 'ractive_components' ).map( 'ractive' )
 ];
