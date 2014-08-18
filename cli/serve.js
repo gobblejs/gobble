@@ -17,7 +17,7 @@ module.exports = function ( command ) {
 			logger.info( 'gobblefile changed, restarting server...' );
 			cleanup( config.gobbledir ).then( function () {
 				server.close().then( restart, restart );
-			}).catch( debug );
+			}).catch( logger.error );
 		});
 
 		function restart () {

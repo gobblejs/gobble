@@ -3,7 +3,6 @@ module.exports = function ( command ) {
 		gobble = require( '../lib' ),
 		cleanup = require( './utils/cleanup' ),
 		config = require( '../lib/config' ),
-		debug = require( '../lib/utils/debug' ),
 		logger = require( '../lib/logger' ),
 		targetDir,
 		resolvedTarget;
@@ -29,7 +28,7 @@ module.exports = function ( command ) {
 				return build();
 			}, build );
 		}
-	}).catch( debug );
+	}).catch( logger.error );
 
 	function build () {
 		logger.info( 'building...' );
