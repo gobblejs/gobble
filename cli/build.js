@@ -12,7 +12,7 @@ module.exports = function ( command ) {
 	}
 
 	build( require( config.gobblefile ), {
-		target: path.join( config.cwd, targetDir ),
+		target: path.resolve( config.cwd, targetDir ),
 		gobbledir: config.gobbledir,
 		force: command.options.force
 	});
