@@ -5,11 +5,11 @@ module.exports = function ( command ) {
 		logger = require( '../lib/logger' );
 
 	cleanup( config.gobbledir ).then( function () {
-		var server, watcher, port = command.options.port || 4567, tree;
+		var server, watcher, port = command.options.port || 4567, node;
 
 		try {
-			tree = require( config.gobblefile );
-			server = gobble.serve( tree, { port: port });
+			node = require( config.gobblefile );
+			server = gobble.serve( node, { port: port });
 		} catch ( err ) {
 			if ( !err.gobbled ) {
 				logger.error( 'error in gobblefile: ', err.message || err );
@@ -29,8 +29,8 @@ module.exports = function ( command ) {
 				delete require.cache[ config.gobblefile ];
 
 				try {
-					tree = require( config.gobblefile );
-					server.resume( tree );
+					node = require( config.gobblefile );
+					server.resume( node );
 				} catch ( err ) {
 					logger.error( 'error in gobblefile: ', err.message || err );
 					console.trace( err );
