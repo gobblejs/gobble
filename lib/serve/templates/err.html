@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width, user-scalable=no'>
+
+	<title>gobble error</title>
+
+	<style>
+		body {
+			text-align: center;
+			font-family: 'Helvetica Neue', arial, sans-serif;
+			color: #666;
+			font-weight: 200;
+			line-height: 1.4;
+			max-width: 40em;
+			margin: 0 auto;
+		}
+
+		h1 {
+			color: rgb(150,0,0);
+			font-weight: 100;
+			font-size: 6em;
+			margin: 0;
+		}
+
+		p {
+			margin: 0 0 1em 0;
+		}
+
+		.stack {
+			font-family: 'Inconsolata', 'Source Code Pro', 'Consolas', 'Monaco', monospace;
+			text-align: left;
+			margin: 2em 0 0 0;
+			padding: 2em 4em;
+			background-color: #f9f9f9;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Oops!</h1>
+
+	<p>Something appears to have gone wrong with the <strong>${id}</strong> node:</p>
+
+	<p>${message}</p>
+
+	<ul class='stack'>${stack}</ul>
+</body>
+</html>
