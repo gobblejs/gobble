@@ -5,9 +5,17 @@ module.exports = function ( command ) {
 		logger = require( '../lib/logger' );
 
 	cleanup( config.gobbledir ).then( function () {
-		var server, watcher, port = command.options.port || 4567;
+		var server, watcher, port = command.options.port || 4567, tree;
 
-		server = gobble.serve( gobble( require( config.gobblefile ) ), { port: port });
+		try {
+			tree = require( config.gobblefile );
+			server = gobble.serve( tree, { port: port });
+		} catch ( err ) {
+			if ( !err.gobbled ) {
+				logger.error( 'error in gobblefile: ', err.message || err );
+				console.trace( err );
+			}
+		}
 
 		watcher = require( 'chokidar' ).watch( config.gobblefile, {
 			ignoreInitial: true
@@ -16,13 +24,18 @@ module.exports = function ( command ) {
 		watcher.on( 'change', function () {
 			logger.info( 'gobblefile changed, restarting server...' );
 			cleanup( config.gobbledir ).then( function () {
-				server.close().then( restart, restart );
+				server.pause();
+
+				delete require.cache[ config.gobblefile ];
+
+				try {
+					tree = require( config.gobblefile );
+					server.resume( tree );
+				} catch ( err ) {
+					logger.error( 'error in gobblefile: ', err.message || err );
+					console.trace( err );
+				}
 			}).catch( logger.error );
 		});
-
-		function restart () {
-			delete require.cache[ config.gobblefile ];
-			server = gobble.serve( gobble( require( config.gobblefile ) ), { port: port });
-		}
 	}).catch( logger.error );
 };
