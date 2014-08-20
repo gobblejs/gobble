@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "preferGlobal": true,
   "bin": {
     "gobble": "cli/index.js"
