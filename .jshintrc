@@ -1,0 +1,12 @@
+{
+	"undef": true,
+	"unused": true,
+	"globals": {
+		"require": true,
+		"module": true,
+		"exports": true,
+		"__dirname": true,
+		"process": true,
+		"setTimeout": true
+	}
+}
