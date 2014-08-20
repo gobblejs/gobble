@@ -19,7 +19,8 @@
     "rimraf": "~2.2.8",
     "require-relative": "~0.8.7",
     "colors": "~0.6.2",
-    "buffer-crc32": "~0.2.3"
+    "buffer-crc32": "~0.2.3",
+    "tiny-lr": "~0.1.0"
   },
   "files": [
     "index.js",
