@@ -1,41 +1,51 @@
-module.exports = function ( command ) {
-	var gobble = require( '../lib' ),
-		cleanup = require( '../lib/utils/cleanup' ),
-		config = require( '../lib/config' ),
-		logger = require( '../lib/logger' );
+module.exports = function ( command, gobble, cwd, gobblefile, gobbledir ) {
+	var server,
+		watcher,
+		port,
+		resuming = true;
 
-	cleanup( config.gobbledir ).then( function () {
-		var server, watcher, port = command.options.port || 4567, node;
+	port = command.options.port || 4567;
 
-		try {
-			node = require( config.gobblefile );
-			server = gobble.serve( node, { port: port });
-		} catch ( err ) {
-			if ( !err.gobbled ) {
-				logger.error( 'error in gobblefile: ', err.message || err );
-				console.trace( err );
-			}
+	try {
+		node = require( gobblefile );
+		server = gobble.serve( node, {
+			port: port,
+			gobbledir: gobbledir
+		});
+	} catch ( err ) {
+		if ( !err.gobble ) {
+			console.log( 'error in gobblefile' );
+			console.trace( err );
+		}
+	}
+
+	watcher = require( 'chokidar' ).watch( gobblefile, {
+		ignoreInitial: true
+	});
+
+	watcher.on( 'change', function () {
+		if ( resuming ) {
+			return;
 		}
 
-		watcher = require( 'chokidar' ).watch( config.gobblefile, {
-			ignoreInitial: true
+		console.log( 'gobblefile changed, restarting server...' );
+
+		resuming = true;
+
+		server.pause().then( function () {
+			resuming = false;
+
+			delete require.cache[ config.gobblefile ];
+
+			try {
+				node = require( gobblefile );
+				server.resume( node );
+			} catch ( err ) {
+				console.log( 'error in gobblefile' );
+				console.trace( err );
+			}
+		}, function () {
+			resuming = false;
 		});
-
-		watcher.on( 'change', function () {
-			logger.info( 'gobblefile changed, restarting server...' );
-			cleanup( config.gobbledir ).then( function () {
-				server.pause();
-
-				delete require.cache[ config.gobblefile ];
-
-				try {
-					node = require( config.gobblefile );
-					server.resume( node );
-				} catch ( err ) {
-					logger.error( 'error in gobblefile: ', err.message || err );
-					console.trace( err );
-				}
-			}).catch( logger.error );
-		});
-	}).catch( logger.error );
+	});
 };

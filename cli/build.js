@@ -1,19 +1,18 @@
-module.exports = function ( command ) {
+module.exports = function ( command, gobble, cwd, gobblefile, gobbledir ) {
 	var path = require( 'path' ),
-		config = require( '../lib/config' ),
-		build = require( '../lib/build' ),
-		logger = require( '../lib/logger' ),
 		targetDir;
+
+	require( 'colors' );
 
 	targetDir = command.args[1];
 	if ( !targetDir ) {
-		logger.error( 'You must specify an output folder, e.g. gobble build dist' );
+		console.log( 'You must specify an output folder, e.g. ' + 'gobble build dist'.magenta );
 		process.exit( 1 );
 	}
 
-	build( require( config.gobblefile ), {
-		target: path.resolve( config.cwd, targetDir ),
-		gobbledir: config.gobbledir,
+	gobble.build( require( gobblefile ), {
+		target: path.resolve( cwd, targetDir ),
+		gobbledir: gobbledir,
 		force: command.options.force
 	});
 };
