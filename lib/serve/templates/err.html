@@ -13,7 +13,8 @@
 			color: #666;
 			font-weight: 200;
 			line-height: 1.4;
-			max-width: 40em;
+			padding: 0 1em;
+			max-width: 72em;
 			margin: 0 auto;
 		}
 
@@ -28,12 +29,32 @@
 			margin: 0 0 1em 0;
 		}
 
-		.stack {
+		.error-message, .stack {
+			padding: 2em 4em;
 			font-family: 'Inconsolata', 'Source Code Pro', 'Consolas', 'Monaco', monospace;
 			text-align: left;
-			margin: 2em 0 0 0;
+		}
+
+		.error-message a, .stack a {
+			color: inherit;
+			word-break: break-all;
+		}
+
+		.error-message {
+			background-color: #333;
+			color: white;
+			margin: 0;
+		}
+
+		.error-message span {
+			word-break: break-all;
+		}
+
+		.stack {
+			margin: 0;
 			padding: 2em 4em;
-			background-color: #f9f9f9;
+			background-color: #555;
+			color: white;
 		}
 	</style>
 </head>
@@ -43,9 +64,7 @@
 
 	<p>Something appears to have gone wrong with the <strong>${id}</strong> node:</p>
 
-	<p>${message}</p>
-
-	${filemessage}
+	<p class='error-message'>${message}</p>
 
 	<ul class='stack'>${stack}</ul>
 </body>
