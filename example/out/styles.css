@@ -1,0 +1,9 @@
+body {
+	color: red;
+	font-family: 'Helvetica Neue';
+}
+
+h1 {
+	font-weight: 500;
+	text-decoration: underline;
+}
