@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "preferGlobal": true,
   "dependencies": {
     "findup-sync": "~0.1.3",
