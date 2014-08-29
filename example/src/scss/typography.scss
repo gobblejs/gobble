@@ -10,13 +10,23 @@ header {
 	font-family: 'Amatic SC', cursive;
 
 	h1 {
-		font-size: 8em;
+		font-size: 4em;
 		margin: 0;
 	}
 
 	p {
-		font-size: 2em;
+		font-size: 1.6em;
 		margin: 0 0 1em 0;
+	}
+
+	@media (min-width: 40em) {
+		h1 {
+			font-size: 8em;
+		}
+
+		p {
+			font-size: 2em;
+		}
 	}
 }
 
