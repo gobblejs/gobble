@@ -1,1 +1,0 @@
-{"config":{"foo":"bar","answer":42},"template":"<p>This is a {{template}}</p>\n","anArray":["a\n","b\n","c\n"]}

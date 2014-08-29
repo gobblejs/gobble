@@ -1,0 +1,13 @@
+@import 'mixins';
+
+@include keyframes(gobble) {
+	0%   { transform: translate(0,50%) rotate(-2deg) translate(0,-50%); }
+	25%  { transform: translate(0,50%) rotate(2deg) translate(0,-50%); }
+	50%  { transform: translate(0,50%) rotate(-2deg) translate(0,-50%); }
+	75%  { transform: translate(0,50%) rotate(2deg) translate(0,-50%); }
+	100% { transform: translate(0,50%) rotate(-2deg) translate(0,-50%); }
+}
+
+.gobbling {
+	@include animation('gobble .5s steps(4,end) 1');
+}

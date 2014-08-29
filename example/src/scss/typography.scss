@@ -1,0 +1,30 @@
+body {
+	font-family: 'Helvetica Neue', arial, sans-serif;
+}
+
+header {
+	font-family: 'Sue Ellen Francisco', cursive;
+	font-family: 'Walter Turncoat', cursive;
+	font-family: 'Just Me Again Down Here', cursive;
+	font-family: 'Coming Soon', cursive;
+	font-family: 'Amatic SC', cursive;
+
+	h1 {
+		font-size: 8em;
+		margin: 0;
+	}
+
+	p {
+		font-size: 2em;
+		margin: 0 0 1em 0;
+	}
+}
+
+.smallprint {
+	font-size: 0.8em;
+	color: #999;
+
+	a {
+		color: #ad4a00;
+	}
+}

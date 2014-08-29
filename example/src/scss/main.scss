@@ -1,3 +1,7 @@
-body {
-	color: blue;
+@import 'layout';
+@import 'typography';
+@import 'animation';
+
+img {
+	cursor: pointer;
 }

@@ -1,13 +1,14 @@
 var gobble = require( 'gobble' );
 
-var src = gobble( 'src' );
-
 module.exports = gobble([
-	src.exclude( 'scss/**' ).map( 'replace', { 'TITLE' : 'woop woop!' }),
-	src.transform( 'sass', { src: 'scss/main.scss', dest: 'min.css' }),
-	gobble( 'coffee' ).map( 'coffee' ),
-	gobble( 'js' ).map( 'es6-transpiler' ),
-	gobble( 'data' ).transform( 'spelunk', { dest: 'data5.json' }),
-	gobble( 'es6' ).map( 'esperanto', { type: 'amd', defaultOnly: true }),
-	gobble( 'ractive_components' ).map( 'ractive' )
+
+	// the main index.html file, and the turkey logo
+	gobble( 'src/root' ),
+
+	// styles - convert from SCSS to CSS using the gobble-sass plugin
+	gobble( 'src/scss' ).transform( 'sass', { src: 'main.scss', dest: 'min.css' }),
+
+	// javascript - convert from ES6 to ES5 using the gobble-es6-transpiler plugin
+	gobble( 'src/js' ).map( 'es6-transpiler' )
+
 ]);

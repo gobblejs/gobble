@@ -1,16 +1,7 @@
 {
   "name": "gobble-example",
-  "description": "placeholder package.json file so we can futz around with dependencies",
   "version": "0.1.0",
   "devDependencies": {
-    "gobble": "~0.1.2",
-    "gobble-replace": "~0.1.0",
-    "gobble-sass": "~0.1.2",
-    "gobble-coffee": "~0.1.0",
-    "gobble-esnext": "^0.1.1",
-    "gobble-spelunk": "~0.2.2",
-    "gobble-esperanto": "~0.1.0",
-    "gobble-ractive": "~0.1.0",
-    "gobble-es6-transpiler": "~0.1.0"
+    "gobble": "^0.5.3"
   }
 }
