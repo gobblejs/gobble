@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "preferGlobal": true,
   "dependencies": {
     "buffer-crc32": "~0.2.3",
