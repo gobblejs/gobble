@@ -1,9 +1,11 @@
 @import 'layout';
+@import 'fonts';
 @import 'typography';
 @import 'animation';
 
 img {
 	cursor: pointer;
+	width: 400px;
 	max-width: 100%;
 	-webkit-tap-highlight-color: transparent;
 }
