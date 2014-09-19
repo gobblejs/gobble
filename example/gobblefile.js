@@ -9,6 +9,6 @@ module.exports = gobble([
 	gobble( 'src/styles' ).transform( 'sass', { src: 'main.scss', dest: 'main.css' }),
 
 	// javascript - convert from ES6 to ES5 using the gobble-es6-transpiler plugin
-	gobble( 'src/js' ).map( 'es6-transpiler' )
+	gobble( 'src/js' ).transform( 'es6-transpiler' )
 
 ]);
