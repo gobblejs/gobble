@@ -28,5 +28,9 @@
   ],
   "keywords": [
     "gobble"
-  ]
+  ],
+  "devDependencies": {
+    "request": "^2.45.0",
+    "sander": "^0.1.5"
+  }
 }
