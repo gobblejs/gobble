@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+* Fixed bug introduced in 0.6.0, whereby `.cache` directories were inadvertently destroyed on cleanup
+
 ## 0.6.0
 
 * Started maintaining a changelog
