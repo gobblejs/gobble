@@ -8,6 +8,9 @@
 		"exports": true,
 		"__dirname": true,
 		"process": true,
-		"setTimeout": true
+		"setTimeout": true,
+		"describe": true,
+		"it": true,
+		"afterEach": true
 	}
 }

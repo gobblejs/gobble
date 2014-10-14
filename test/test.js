@@ -3,3 +3,4 @@ console.log( 'Running gobble.js tests. Please ensure that Gobble is not already 
 require( './env' )();
 require( './build' )();
 require( './serve' )();
+require( './scenarios' )();
