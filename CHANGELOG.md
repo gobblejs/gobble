@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+* `gobble('dir')` will throw an error if the `dir` directory doesn't exist ([#12](https://github.com/gobblejs/gobble/issues/12))
+
 ## 0.6.1
 
 * Fixed bug introduced in 0.6.0, whereby `.cache` directories were inadvertently destroyed on cleanup
