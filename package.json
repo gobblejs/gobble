@@ -2,6 +2,9 @@
   "name": "gobble",
   "description": "The last build tool you'll ever need",
   "version": "0.6.2",
+  "author": "Rich Harris",
+  "license": "MIT",
+  "repository": "https://github.com/gobblejs/gobble",
   "dependencies": {
     "buffer-crc32": "~0.2.3",
     "colors": "~0.6.2",
