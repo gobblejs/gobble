@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3
+
+* Internal refactoring
+
 ## 0.6.2
 
 * `gobble('dir')` will throw an error if the `dir` directory doesn't exist ([#12](https://github.com/gobblejs/gobble/issues/12))
