@@ -1,4 +1,4 @@
-var gobble = require( 'gobble' );
+var gobble = require( '../' );
 
 module.exports = gobble([
 
@@ -8,7 +8,7 @@ module.exports = gobble([
 	// styles - convert from SCSS to CSS using the gobble-sass plugin
 	gobble( 'src/styles' ).transform( 'sass', { src: 'main.scss', dest: 'main.css' }),
 
-	// javascript - convert from ES6 to ES5 using the gobble-es6-transpiler plugin
-	gobble( 'src/js' ).transform( 'es6-transpiler' )
+	// coffeescript - convert to javascript, then minify
+	gobble( 'src/coffee' ).transform( 'coffee' ).transform( 'uglifyjs' ).transform( 'sorcery' )
 
 ]);
