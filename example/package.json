@@ -5,7 +5,7 @@
     "gobble": "^0.5.10",
     "gobble-coffee": "^0.2.0",
     "gobble-es6-transpiler": "^0.1.0",
-    "gobble-sass": "^0.2.0",
+    "gobble-sass": "^0.3.0",
     "gobble-sorcery": "^0.1.0",
     "gobble-uglifyjs": "^0.2.0"
   }
