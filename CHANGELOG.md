@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.5
+
+* Fix names of sourcemaps in subdirectories
+
+## 0.6.4
+
+* Reinstate CRC comparisons, for fast one-to-one transformations (unchanged files are not transformed again)
+* Implement `node.stop()`, for cleaning up after finishing serving or restarting a server
+
 ## 0.6.3
 
 * Internal refactoring
