@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.6
+
+* Serve task emits `build` event on each successful build
+* Files are given the correct extension by the map transformation if their inputs are unchanged ([#14](https://github.com/gobblejs/gobble/issues/5))
+* The `ready` event is only emitted by the serve task when the server is listening *and* the first build is complete
+
 ## 0.6.5
 
 * Fix names of sourcemaps in subdirectories
