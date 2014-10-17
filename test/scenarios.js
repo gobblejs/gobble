@@ -47,7 +47,7 @@ module.exports = function () {
 
 				task = source.transform( toTxt ).serve();
 
-				task.once( 'built', function () {
+				task.once( 'ready', function () {
 					task.once( 'built', function () {
 						request( 'http://localhost:4567/foo.txt', function ( err, response, body ) {
 							assert.equal( body.trim(), 'foo: this is some text' );
