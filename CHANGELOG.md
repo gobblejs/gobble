@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.8
+
+* Fix for ([#18](https://github.com/gobblejs/gobble/issues/18))
+
 ## 0.6.7
 
 * Nodes clean up after themselves on each successful build, to avoid lengthy subsequent startup times ([#16](https://github.com/gobblejs/gobble/issues/16))
