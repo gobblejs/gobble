@@ -9,7 +9,7 @@ module.exports = function () {
 	describe( 'node.build()', function () {
 		beforeEach( function () {
 			// Clean up output dir
-			return sander.rimraf( __dirname, 'output' );
+			return sander.rimraf( 'output' );
 		});
 
 		afterEach( function () {
@@ -21,7 +21,7 @@ module.exports = function () {
 			});
 
 			// Clean up output dir
-			return sander.rimraf( __dirname, 'output' );
+			return sander.rimraf( 'output' );
 		});
 
 		it( 'should return a promise that fulfils on completion of build', function () {
