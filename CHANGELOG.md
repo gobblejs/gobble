@@ -2,7 +2,7 @@
 
 ## 0.6.8
 
-* Fix for ([#18](https://github.com/gobblejs/gobble/issues/18))
+* Fix for ([#19](https://github.com/gobblejs/gobble/issues/19))
 
 ## 0.6.7
 
