@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.9
+
+* If a source node is used more than once, changes will only trigger one rebuild ([#19](https://github.com/gobblejs/gobble/issues/19))
+* Merge operations can be aborted mid-flight, to prevent unnecessary work
+
 ## 0.6.8
 
 * Fix for ([#19](https://github.com/gobblejs/gobble/issues/19))
