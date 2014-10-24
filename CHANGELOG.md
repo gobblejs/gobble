@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.10
+
+* Upgrade sander module to version that uses graceful-fs, to prevent EMFILE errors
+
 ## 0.6.9
 
 * If a source node is used more than once, changes will only trigger one rebuild ([#19](https://github.com/gobblejs/gobble/issues/19))
