@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.6.5",
+  "version": "0.6.10",
   "author": "Rich Harris",
   "license": "MIT",
   "repository": "https://github.com/gobblejs/gobble",
@@ -22,7 +22,7 @@
     "require-relative": "~0.8.7",
     "resolve": "^1.0.0",
     "rimraf": "~2.2.8",
-    "sander": "^0.1.6",
+    "sander": "^0.2.0",
     "symlink-or-copy": "^1.0.0",
     "tiny-lr": "~0.1.0"
   },

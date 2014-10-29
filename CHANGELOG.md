@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.6.10
+
+* Upgrade sander module to version that uses graceful-fs, to prevent EMFILE errors
+
+## 0.6.9
+
+* If a source node is used more than once, changes will only trigger one rebuild ([#19](https://github.com/gobblejs/gobble/issues/19))
+* Merge operations can be aborted mid-flight, to prevent unnecessary work
+
+## 0.6.8
+
+* Fix for ([#19](https://github.com/gobblejs/gobble/issues/19))
+
+## 0.6.7
+
+* Nodes clean up after themselves on each successful build, to avoid lengthy subsequent startup times ([#16](https://github.com/gobblejs/gobble/issues/16))
+
+## 0.6.6
+
+* Serve task emits `build` event on each successful build
+* Files are given the correct extension by the map transformation if their inputs are unchanged ([#14](https://github.com/gobblejs/gobble/issues/14))
+* The `ready` event is only emitted by the serve task when the server is listening *and* the first build is complete
+
 ## 0.6.5
 
 * Fix names of sourcemaps in subdirectories
