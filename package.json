@@ -18,11 +18,10 @@
     "minimatch": "~1.0.0",
     "mkdirp": "~0.5.0",
     "promise-map-series": "~0.2.0",
-    "promo": "~0.1.1",
     "require-relative": "~0.8.7",
     "resolve": "^1.0.0",
     "rimraf": "~2.2.8",
-    "sander": "^0.2.0",
+    "sander": "^0.2.1",
     "symlink-or-copy": "^1.0.0",
     "tiny-lr": "~0.1.0"
   },
