@@ -35,5 +35,8 @@
   ],
   "devDependencies": {
     "request": "^2.45.0"
+  },
+  "scripts": {
+    "prepublish": "set -e; mocha"
   }
 }
