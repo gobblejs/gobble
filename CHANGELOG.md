@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.11
+
+* The `GOBBLE_ENV` and `GOBBLE_CWD` environment variables can be set with e.g. `gobble.env('test')` and `gobble.cwd(__dirname)` respectively (`gobble.env()`/`gobble.cwd()` without arguments retrieves the current value)
+* Fixes edge case whereby source nodes would be incorrectly shared between trees
+* Better error handling with file transformers
+* File transformers can return an object with a missing (or falsy) `map` property
+
 ## 0.6.10
 
 * Upgrade sander module to version that uses graceful-fs, to prevent EMFILE errors

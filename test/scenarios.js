@@ -6,6 +6,8 @@ var assert = require( 'assert' ),
 	r = path.resolve.bind( null, __dirname ),
 	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) );
 
+gobble.cwd( __dirname );
+
 function simulateChange ( source, change ) {
 	source.emit( 'error', {
 		name: 'GobbleError',
@@ -78,6 +80,12 @@ module.exports = function () {
 				simulateChange( source, {
 					type: 'change',
 					path: 'tmp/foo/foo.md'
+				});
+			});
+
+			task.on( 'error', function ( err ) {
+				setTimeout( function () {
+					throw err;
 				});
 			});
 		});
