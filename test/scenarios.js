@@ -1,28 +1,10 @@
 var assert = require( 'assert' ),
 	request = require( 'request' ),
 	gobble = require( '../' ),
-	path = require( 'path' ),
 	sander = require( 'sander' ),
-	r = path.resolve.bind( null, __dirname ),
-	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) );
+	simulateChange = require( './utils/simulateChange' );
 
 gobble.cwd( __dirname );
-
-function simulateChange ( source, change ) {
-	source.emit( 'error', {
-		name: 'GobbleError',
-		code: 'INVALIDATED',
-		message: 'build invalidated',
-		changes: [{
-			type: change.type,
-			path: path.resolve( change.path )
-		}]
-	});
-}
-
-function copy ( inputdir, outputdir, options ) {
-	return sander.copydir( inputdir ).to( outputdir );
-}
 
 module.exports = function () {
 	var task;

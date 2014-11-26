@@ -5,4 +5,5 @@ process.chdir( __dirname );
 require( './env' )();
 require( './build' )();
 require( './serve' )();
+require( './watch' )();
 require( './scenarios' )();
