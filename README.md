@@ -27,6 +27,11 @@ There are many good reasons! [Here are a few.](https://github.com/gobblejs/gobbl
 * [API reference](https://github.com/gobblejs/gobble/wiki/API-reference)
 
 
+## Plugins
+
+Search for 'gobble' on npm to find plugins: https://www.npmjs.org/search?q=gobble
+
+
 ## Caveats
 
 Gobble is still in active development, and may not be ready for primetime yet - APIs may change, and huge swathes of documentation are currently missing. Bear with me!
