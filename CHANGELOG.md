@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1
+
+* Errors are augmented with `file`, `line` and `column` properties where possible, for smarter debugging
+
+## 0.7.0
+
+* Add `node.watch()` method, for building to a specific folder and keeping it updated as files change
+* Task `info` events are fired with objects with message codes, rather than strings. [Consult the wiki](https://github.com/gobblejs/gobble/wiki/Events) for a list of message codes
+* Internal refactoring
+
 ## 0.6.11
 
 * The `GOBBLE_ENV` and `GOBBLE_CWD` environment variables can be set with e.g. `gobble.env('test')` and `gobble.cwd(__dirname)` respectively (`gobble.env()`/`gobble.cwd()` without arguments retrieves the current value)
