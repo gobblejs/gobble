@@ -102,6 +102,28 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should pass copy of default options to file transformers', function () {
+			var source = gobble( 'tmp/foo' ), count = 0;
+
+			function checkOptions ( input, options ) {
+				assert.equal( options.foo, 'bar' );
+				options.foo = 'baz';
+				count++;
+
+				return input;
+			}
+
+			checkOptions.defaults = { foo: 'bar' };
+
+			task = source.transform( checkOptions ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 3 );
+			});
+		});
+
 		it( 'should gracefully handle source nodes that appear twice (#19)', function ( done ) {
 			var timesToRun = 100;
 
