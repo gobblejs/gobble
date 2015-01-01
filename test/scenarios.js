@@ -124,6 +124,26 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should allow file transforms to filter with a RegExp', function () {
+			var count = 0, source = gobble( 'tmp/foo' ), task;
+
+			function checkFilter( input ) {
+				count++;
+				return input;
+			}
+			checkFilter.defaults = {
+				accept: /foo\.md/
+			}
+
+			task = source.transform( checkFilter ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 1 );
+			});
+		});
+
 		it( 'should gracefully handle source nodes that appear twice (#19)', function ( done ) {
 			var timesToRun = 100;
 
