@@ -124,8 +124,39 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should allow a single file as a source node (#23)', function ( done ) {
+			var source = gobble( 'tmp/foo/foo.md' ), count = 0;
+
+			function check ( indir, outdir, options, done ) {
+				assert.deepEqual( sander.lsrSync( indir ), [ 'foo.md' ] );
+				count++;
+				done();
+			}
+
+			task = source.transform( check ).watch({
+				dest: 'tmp/output'
+			});
+
+			task.once( 'built', function () {
+				task.once( 'built', function () {
+					if ( count === 2 ) {
+						done();
+					} else {
+						done( new Error( 'Expected count to be 2, not ', count ) );
+					}
+				});
+
+				simulateChange( source, {
+					type: 'change',
+					path: source.targetFile
+				});
+			});
+		});
+
 		it( 'should gracefully handle source nodes that appear twice (#19)', function ( done ) {
 			var timesToRun = 100;
+
+			this.timeout( 10000 );
 
 			run();
 
