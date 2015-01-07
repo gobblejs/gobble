@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.2
+
+* You can now gobble a single file (`node = gobble('myFile.txt')`) ([#23](https://github.com/gobblejs/gobble/issues/23))
+* Transformer context includes `env` property and a `log` method ([#24](https://github.com/gobblejs/gobble/issues/24))
+* The `accept` option of a file transformer can include regexes as well as file extension strings
+* [sander](https://github.com/rich-harris/sander) is exposed as `gobble.sander`, for convenience
+* Duplicate messages are squelched ([gobble-cli/#6](https://github.com/gobblejs/gobble-cli/issues/6))
+* Minor bugfixes
+
+
 ## 0.7.1
 
 * Errors are augmented with `file`, `line` and `column` properties where possible, for smarter debugging
