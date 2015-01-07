@@ -173,6 +173,75 @@ module.exports = function () {
 			});
 		});
 
+		it( 'nodes that appear multiple times should only emit info events once (serve/watch)', function ( done ) {
+			var a, b, c, info = [];
+
+			function copy ( inputdir, outputdir, options ) {
+				return sander.writeFile( outputdir, 'foo.md', '' + Math.random() );
+			}
+
+			a = gobble( 'tmp/foo' ).transform( copy );
+			b = a.transform( copy );
+			c = a.transform( copy );
+
+			task = gobble([ b, c ]).serve();
+
+			task.on( 'info', function ( message ) {
+				info.push( message );
+			});
+
+			task.once( 'built', function () {
+				task.once( 'built', function () {
+					var message;
+
+					while ( message = info.pop() ) {
+						if ( ~info.indexOf( message ) ) {
+							done( new Error( 'Message was duplicated' ) );
+						}
+					}
+
+					done();
+				});
+
+				simulateChange( a, {
+					type: 'change',
+					path: 'tmp/foo/foo.md'
+				});
+			});
+		});
+
+		it( 'nodes that appear multiple times should only emit info events once (build)', function ( done ) {
+			var a, b, c, info = [];
+
+			function copy ( inputdir, outputdir, options ) {
+				return sander.writeFile( outputdir, 'foo.md', '' + Math.random() );
+			}
+
+			a = gobble( 'tmp/foo' ).transform( copy );
+			b = a.transform( copy );
+			c = a.transform( copy );
+
+			task = gobble([ b, c ]).build({
+				dest: 'tmp/output'
+			});
+
+			task.on( 'info', function ( message ) {
+				info.push( message );
+			});
+
+			task.then( function () {
+				var message;
+
+				while ( message = info.pop() ) {
+					if ( ~info.indexOf( message ) ) {
+						done( new Error( 'Message was duplicated' ) );
+					}
+				}
+
+				done();
+			});
+		});
+
 		it( 'should gracefully handle source nodes that appear twice (#19)', function ( done ) {
 			var timesToRun = 100;
 
@@ -186,7 +255,7 @@ module.exports = function () {
 				var source;
 
 				if ( !--timesToRun ) {
-					done();
+					return done();
 				}
 
 				source = gobble( 'tmp/foo' );
