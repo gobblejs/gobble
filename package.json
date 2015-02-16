@@ -33,9 +33,11 @@
     "gobble"
   ],
   "devDependencies": {
+    "mocha": "^2.1.0",
     "request": "^2.45.0"
   },
   "scripts": {
-    "prepublish": "set -e; mocha"
+    "prepublish": "set -e; mocha",
+    "test": "mocha"
   }
 }
