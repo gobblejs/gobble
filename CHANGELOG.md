@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+* Stack traces are preserved when errors are thrown inside transformations
+
 ## 0.7.3
 
 * Auto-generated sourceMappingURLs are always absolute ([#33](https://github.com/gobblejs/gobble/issues/33))
