@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3
+
+* Auto-generated sourceMappingURLs are always absolute ([#33](https://github.com/gobblejs/gobble/issues/33))
+
 ## 0.7.2
 
 * You can now gobble a single file (`node = gobble('myFile.txt')`) ([#23](https://github.com/gobblejs/gobble/issues/23))

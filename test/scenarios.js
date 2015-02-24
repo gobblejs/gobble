@@ -1,8 +1,9 @@
-var assert = require( 'assert' ),
-	request = require( 'request' ),
-	gobble = require( '../' ),
-	sander = require( 'sander' ),
-	simulateChange = require( './utils/simulateChange' );
+var assert = require( 'assert' );
+var path = require( 'path' );
+var request = require( 'request' );
+var gobble = require( '../' );
+var sander = require( 'sander' );
+var simulateChange = require( './utils/simulateChange' );
 
 gobble.cwd( __dirname );
 
@@ -282,6 +283,39 @@ module.exports = function () {
 					});
 				});
 			}
+		});
+
+		it( 'should populate use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+
+			task = source.transform( function ( input ) {
+				return {
+					code: input,
+					map: {}
+				};
+			}).serve();
+
+			task.once( 'ready', function () {
+				task.once( 'built', function () {
+					request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
+						assert.ok( /^(?:[A-Z]:)?[\/\\]/i.test( sourceMappingURL ) );
+						assert.ok( sander.existsSync( sourceMappingURL ), 'sourcemap file does not exist' );
+						done();
+					});
+				});
+
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/foo/foo.md'
+				});
+			});
+
+			task.on( 'error', function ( err ) {
+				setTimeout( function () {
+					throw err;
+				});
+			});
 		});
 	});
 
