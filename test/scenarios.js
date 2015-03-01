@@ -285,7 +285,7 @@ module.exports = function () {
 			}
 		});
 
-		it( 'should populate use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
+		it( 'should use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
 			var source = gobble( 'tmp/foo' );
 
 			task = source.transform( function ( input ) {
