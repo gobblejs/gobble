@@ -1,10 +1,9 @@
+import { resolve } from 'path';
+import * as sander from 'sander';
 import getNode from './utils/getNode';
 import config from './config';
-import * as sander from 'sander';
 
-var gobble = function ( inputs, options ) {
-	return getNode( inputs, options );
-};
+var gobble = ( inputs, options ) => getNode( inputs, options );
 
 gobble.env = function ( env ) {
 	if ( arguments.length ) {
@@ -16,7 +15,7 @@ gobble.env = function ( env ) {
 
 gobble.cwd = function () {
 	if ( arguments.length ) {
-		config.cwd = require( 'path' ).resolve.apply( null, arguments );
+		config.cwd = resolve.apply( null, arguments );
 	}
 
 	return config.cwd;

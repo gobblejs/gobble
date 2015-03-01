@@ -7,69 +7,65 @@ import merge from '../file/merge';
 import uid from '../utils/uid';
 import GobbleError from '../utils/GobbleError';
 
-export default Node.extend({
-	init: function ( inputs, options ) {
-		var node = this;
+export default class Merger extends Node {
+	constructor ( inputs, options ) {
+		super();
 
-		node.inputs = inputs;
+		this.inputs = inputs;
+		this.id = uid( ( options && options.id ) || 'merge' );
+	}
 
-		node.inspectTargets = [];
-		node.id = uid( ( options && options.id ) || 'merge' );
+	ready () {
+		var aborted, index, outputdir;
 
-		node.counter = 1;
-	},
-
-	ready: function () {
-		var node = this, aborted, index, outputdir;
-
-		if ( !node._ready ) {
-			node._abort = function () {
+		if ( !this._ready ) {
+			this._abort = () => {
 				// allows us to short-circuit operations at various points
 				aborted = new GobbleError({
 					code: 'MERGE_ABORTED',
-					id: node.id,
+					id: this.id,
 					message: 'merge aborted'
 				});
 
-				node._ready = null;
+				this._ready = null;
 			};
 
-			index = node.counter++;
-			outputdir = resolve( session.config.gobbledir, node.id, '' + index );
+			index = this.counter++;
+			outputdir = resolve( session.config.gobbledir, this.id, '' + index );
 
-			node._ready = mkdir( outputdir ).then( function () {
+			this._ready = mkdir( outputdir ).then( () => {
 				var start, inputdirs = [];
 
-				return mapSeries( node.inputs, function ( input, i ) {
+				return mapSeries( this.inputs, function ( input, i ) {
 					if ( aborted ) throw aborted;
 
 					return input.ready().then( function ( inputdir ) {
 						inputdirs[i] = inputdir;
 					});
-				}).then( function () {
+				}).then( () => {
 					start = Date.now();
 
-					node.emit( 'info', {
+					this.emit( 'info', {
 						code: 'MERGE_START',
-						id: node.id,
+						id: this.id,
 						progressIndicator: true
 					});
 
-					return mapSeries( inputdirs, function ( inputdir ) {
+					return mapSeries( inputdirs, inputdir => {
 						if ( aborted ) {
 							throw aborted;
 						}
 
 						return merge( inputdir ).to( outputdir );
 					});
-				}).then( function () {
+				}).then( () => {
 					if ( aborted ) throw aborted;
 
-					node._cleanup( index );
+					this._cleanup( index );
 
-					node.emit( 'info', {
+					this.emit( 'info', {
 						code: 'MERGE_COMPLETE',
-						id: node.id,
+						id: this.id,
 						duration: Date.now() - start
 					});
 
@@ -78,61 +74,55 @@ export default Node.extend({
 			});
 		}
 
-		return node._ready;
-	},
+		return this._ready;
+	}
 
-	start: function () {
-		var node = this;
-
-		if ( node._active ) {
+	start () {
+		if ( this._active ) {
 			return;
 		}
 
-		node._active = true;
+		this._active = true;
 
-		node._onerror = function ( err ) {
-			node._abort();
-			node.emit( 'error', err );
+		this._onerror = err => {
+			this._abort();
+			this.emit( 'error', err );
 		};
 
-		node._oninfo = function ( details ) {
-			node.emit( 'info', details );
+		this._oninfo = details => {
+			this.emit( 'info', details );
 		};
 
-		node.inputs.forEach( function ( input ) {
-			input.on( 'error', node._onerror );
-			input.on( 'info', node._oninfo );
+		this.inputs.forEach( input => {
+			input.on( 'error', this._onerror );
+			input.on( 'info', this._oninfo );
 
 			input.start();
 		});
-	},
+	}
 
-	stop: function () {
-		var node = this;
-
-		node.inputs.forEach( function ( input ) {
-			input.off( 'error', node._onerror );
-			input.off( 'info', node._oninfo );
+	stop () {
+		this.inputs.forEach( input => {
+			input.off( 'error', this._onerror );
+			input.off( 'info', this._oninfo );
 
 			input.stop();
 		});
 
-		node._active = false;
-	},
+		this._active = false;
+	}
 
-	_cleanup: function ( index ) {
-		var node = this, dir = join( session.config.gobbledir, node.id );
+	_cleanup ( index ) {
+		var dir = join( session.config.gobbledir, this.id );
 
 		// Remove everything except the last successful output dir.
 		// Use readdirSync to eliminate race conditions
-		readdirSync( dir ).filter( function ( file ) {
-			return file !== '.cache' && ( +file < index );
-		}).forEach( function ( file ) {
-			rimrafSync( dir, file );
-		});
-	},
+		readdirSync( dir )
+			.filter( file => file !== '.cache' && ( +file < index ) )
+			.forEach( file => rimrafSync( dir, file ) );
+	}
 
-	_findCreator: function ( filename ) {
+	_findCreator ( filename ) {
 		var i = this.inputs.length, node;
 		while ( i-- ) {
 			node = this.inputs[i];
@@ -143,4 +133,4 @@ export default Node.extend({
 
 		return null;
 	}
-});
+}

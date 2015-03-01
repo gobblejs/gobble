@@ -6,7 +6,7 @@ export default function uid ( postfix ) {
 		delete process.env.GOBBLE_RESET_UID;
 	}
 
-	return pad( i++ ) + ( postfix ? '-' + postfix : '' );
+	return pad( i++ ) + ( postfix ? `-${postfix}` : '' );
 }
 
 function pad ( number ) {

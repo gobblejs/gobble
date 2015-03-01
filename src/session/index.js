@@ -2,7 +2,9 @@ import { EventEmitter2 } from 'eventemitter2';
 
 let currentSession;
 
-const session = {
+let session = {
+	config: null, // mutable
+
 	create: function ( options ) {
 		if ( currentSession ) {
 			throw new Error( 'Gobble is already running. You can only run one build/serve task per process' );

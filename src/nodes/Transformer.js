@@ -12,65 +12,63 @@ import config from '../config';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
 
-export default Node.extend({
-	init: function ( input, transformer, options, id ) {
-		var node = this;
+export default class Transformer extends Node {
+	constructor ( input, transformer, options, id ) {
+		super();
 
-		node.input = input;
+		this.input = input;
 
-		node.inspectTargets = [];
-		node.transformer = transformer;
-		node.options = assign( {}, options );
+		this.transformer = transformer;
+		this.options = assign( {}, options );
 
-		node.name = id || transformer.id || transformer.name || 'unknown';
-		node.id = uid( node.name );
+		this.name = id || transformer.id || transformer.name || 'unknown';
+		this.id = uid( this.name );
 
 		// Double callback style deprecated as of 0.6.x. TODO remove this eventually
 		if ( transformer.length === 5 ) {
-			warnOnce( 'The gobble plugin API has changed - the "%s" transformer should take a single callback. See https://github.com/gobblejs/gobble/wiki/Troubleshooting for more info', node.name );
+			warnOnce( 'The gobble plugin API has changed - the "%s" transformer should take a single callback. See https://github.com/gobblejs/gobble/wiki/Troubleshooting for more info', this.name );
 
-			node.transformer = function ( inputdir, outputdir, options, callback ) {
+			this.transformer = function ( inputdir, outputdir, options, callback ) {
 				return transformer.call( this, inputdir, outputdir, options, function () {
 					callback();
 				}, callback );
 			};
 		}
+	}
 
-		node.counter = 1;
-	},
+	ready () {
+		var outputdir, transformation;
 
-	ready: function () {
-		var node = this, outputdir, transformation;
-
-		if ( !node._ready ) {
+		if ( !this._ready ) {
 			transformation = {
-				node: node,
-				cachedir: resolve( session.config.gobbledir, node.id, '.cache' ),
-				log: makeLog( node ),
+				node: this,
+				cachedir: resolve( session.config.gobbledir, this.id, '.cache' ),
+				log: makeLog( this ),
 				env: config.env,
 				sander: sander
 			};
 
-			node._abort = function () {
-				node._ready = null;
+			this._abort = () => {
+				this._ready = null;
 				transformation.aborted = true;
 			};
 
-			outputdir = resolve( session.config.gobbledir, node.id, '' + node.counter++ );
-			node._ready = mkdir( outputdir ).then( function () {
-				return node.input.ready().then( function ( inputdir ) {
-					return queue.add( function ( fulfil, reject ) {
+			outputdir = resolve( session.config.gobbledir, this.id, '' + this.counter++ );
+
+			this._ready = mkdir( outputdir ).then( () => {
+				return this.input.ready().then( inputdir => {
+					return queue.add( ( fulfil, reject ) => {
 						var promise, called, callback, start;
 
-						node.emit( 'info', {
+						this.emit( 'info', {
 							code: 'TRANSFORM_START',
 							progressIndicator: true,
-							id: node.id
+							id: this.id
 						});
 
 						start = Date.now();
 
-						callback = function ( err ) {
+						callback = err => {
 							var gobbleError, stack, loc;
 
 							if ( called ) {
@@ -86,7 +84,7 @@ export default Node.extend({
 
 								gobbleError = new GobbleError({
 									message: 'transformation failed',
-									id: node.id,
+									id: this.id,
 									code: 'TRANSFORMATION_FAILED',
 									original: err,
 									stack: stack,
@@ -99,19 +97,19 @@ export default Node.extend({
 							}
 
 							else {
-								node.emit( 'info', {
+								this.emit( 'info', {
 									code: 'TRANSFORM_COMPLETE',
-									id: node.id,
+									id: this.id,
 									duration: Date.now() - start
 								});
 
-								node._cleanup( outputdir );
+								this._cleanup( outputdir );
 								fulfil( outputdir );
 							}
 						};
 
 						try {
-							promise = node.transformer.call( transformation, inputdir, outputdir, assign({}, node.options ), callback );
+							promise = this.transformer.call( transformation, inputdir, outputdir, assign({}, this.options ), callback );
 
 							if ( promise && typeof promise.then === 'function' ) {
 								promise.then( function () {
@@ -122,8 +120,8 @@ export default Node.extend({
 							callback( err );
 						}
 					});
-				}).catch( function ( err ) {
-					node._abort();
+				}).catch( err => {
+					this._abort();
 					queue.abort();
 
 					throw err;
@@ -131,12 +129,10 @@ export default Node.extend({
 			});
 		}
 
-		return node._ready;
-	},
+		return this._ready;
+	}
 
-	start: function () {
-		var node = this;
-
+	start () {
 		if ( this._active ) {
 			return;
 		}
@@ -144,42 +140,40 @@ export default Node.extend({
 		this._active = true;
 
 		// Propagate errors and information
-		this._onerror = function ( err ) {
-			node._abort();
-			node.emit( 'error', err );
+		this._onerror = err => {
+			this._abort();
+			this.emit( 'error', err );
 		};
 
-		this._oninfo = function ( details ) {
-			node.emit( 'info', details );
+		this._oninfo = details => {
+			this.emit( 'info', details );
 		};
 
-		node.input.on( 'error', this._onerror );
-		node.input.on( 'info', this._oninfo );
+		this.input.on( 'error', this._onerror );
+		this.input.on( 'info', this._oninfo );
 
-		mkdir( session.config.gobbledir, node.id ).then( function () {
-			node.input.start();
-		}).catch( function ( err ) {
-			node.emit( 'error', err );
+		mkdir( session.config.gobbledir, this.id ).then( () => {
+			this.input.start();
+		}).catch( err => {
+			this.emit( 'error', err );
 		});
-	},
+	}
 
-	stop: function () {
+	stop () {
 		this.input.off( 'error', this._onerror );
 		this.input.off( 'info', this._oninfo );
 
 		this.input.stop();
 		this._active = false;
-	},
+	}
 
-	_cleanup: function ( latest ) {
-		var node = this, dir = join( session.config.gobbledir, node.id );
+	_cleanup ( latest ) {
+		let dir = join( session.config.gobbledir, this.id );
 
 		// Remove everything except the last successful outputdir and the cachedir
 		// Use readdirSync to eliminate race conditions
-		readdirSync( dir ).filter( function ( file ) {
-			return file !== '.cache' && resolve( dir, file ) !== latest;
-		}).forEach( function ( file ) {
-			rimrafSync( dir, file );
-		});
+		readdirSync( dir )
+			.filter( file => file !== '.cache' && resolve( dir, file ) !== latest )
+			.forEach( file => rimrafSync( dir, file ) );
 	}
-});
+}

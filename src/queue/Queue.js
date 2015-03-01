@@ -1,66 +1,59 @@
 import { EventEmitter2 } from 'eventemitter2';
-import { Promise } from 'sander'; // TODO hmm... we only need it for Promise
+import { Promise } from 'sander';
 
-var Queue = function () {
-	var queue = this;
+export default class Queue extends EventEmitter2 {
+	constructor () {
+		var queue = this;
 
-	EventEmitter2.call( this, {
-		wildcard: true
-	});
+		super({ wildcard: true });
 
-	queue._tasks = [];
+		queue._tasks = [];
 
-	queue._run = function () {
-		var task = queue._tasks.shift();
+		queue._run = () => {
+			var task = queue._tasks.shift();
 
-		if ( !task ) {
-			queue._running = false;
-			return;
-		}
+			if ( !task ) {
+				queue._running = false;
+				return;
+			}
 
-		task.promise.then( runOnNextTick, runOnNextTick );
+			task.promise.then( runOnNextTick, runOnNextTick );
 
-		try {
-			task.fn( task.fulfil, task.reject );
-		} catch ( err ) {
-			task.reject( err );
+			try {
+				task.fn( task.fulfil, task.reject );
+			} catch ( err ) {
+				task.reject( err );
 
-			queue.emit( 'error', err );
-			runOnNextTick();
-		}
-	};
-
-	function runOnNextTick () {
-		process.nextTick( queue._run );
-	}
-};
-
-Queue.prototype = Object.create( require( 'eventemitter2' ).EventEmitter2.prototype );
-Queue.prototype.add = function ( fn ) {
-	var task, promise;
-
-	promise = new Promise( function ( fulfil, reject ) {
-		task = {
-			fn: fn,
-			fulfil: fulfil,
-			reject: reject
+				queue.emit( 'error', err );
+				runOnNextTick();
+			}
 		};
-	});
 
-	task.promise = promise;
-	this._tasks.push( task );
-
-	if ( !this._running ) {
-		this._running = true;
-		this._run();
+		function runOnNextTick () {
+			process.nextTick( queue._run );
+		}
 	}
 
-	return promise;
-};
+	add ( fn ) {
+		var task, promise;
 
-Queue.prototype.abort = function () {
-	this._tasks = [];
-	this._running = false;
-};
+		promise = new Promise( ( fulfil, reject ) => {
+			task = { fn, fulfil, reject };
+		});
 
-export default Queue;
+		task.promise = promise;
+		this._tasks.push( task );
+
+		if ( !this._running ) {
+			this._running = true;
+			this._run();
+		}
+
+		return promise;
+	}
+
+	abort () {
+		this._tasks = [];
+		this._running = false;
+	}
+}

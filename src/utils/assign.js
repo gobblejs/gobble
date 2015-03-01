@@ -1,5 +1,5 @@
-export default function assign ( target ) {
-	Array.prototype.slice.call( arguments, 1 ).forEach( function ( source ) {
+export default function assign ( target, ...sources ) {
+	sources.forEach( function ( source ) {
 		var key;
 
 		for ( key in source ) {

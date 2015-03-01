@@ -13,31 +13,37 @@ import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
 
-var Node = function () {};
+export default class Node extends EventEmitter2 {
+	constructor () {
+		this._gobble = true; // makes life easier for e.g. gobble-cli
 
-Node.prototype = assign( Object.create( EventEmitter2.prototype ), {
-	_gobble: true, // way to identify gobble trees, even with different copies of gobble (i.e. local and global) running simultaneously
+		// initialise event emitter
+		super({ wildcard: true });
+
+		this.counter = 1;
+		this.inspectTargets = [];
+	}
 
 	// This gets overwritten each time this.ready is overwritten. Until
 	// the first time that happens, it's a noop
-	_abort: function () {},
+	_abort () {}
 
-	_findCreator: function () {
+	_findCreator () {
 		return this;
-	},
+	}
 
-	build: function ( options ) {
+	build ( options ) {
 		return build( this, options );
-	},
+	}
 
-	createWatchTask: function () {
+	createWatchTask () {
 		var node = this, watchTask, buildScheduled, previousDetails;
 
 		watchTask = new EventEmitter2({ wildcard: true });
 
 		// TODO is this the best place to handle this stuff? or is it better
 		// to pass off the info to e.g. gobble-cli?
-		node.on( 'info', function ( details ) {
+		node.on( 'info', details => {
 			if ( details === previousDetails ) return;
 			previousDetails = details;
 			watchTask.emit( 'info', details );
@@ -50,7 +56,7 @@ Node.prototype = assign( Object.create( EventEmitter2.prototype ), {
 
 			buildScheduled = false;
 
-			node.ready().then( function ( d ) {
+			node.ready().then( d => {
 				watchTask.emit( 'info', {
 					code: 'BUILD_COMPLETE',
 					duration: Date.now() - buildStart,
@@ -91,25 +97,25 @@ Node.prototype = assign( Object.create( EventEmitter2.prototype ), {
 		build();
 
 		return watchTask;
-	},
+	}
 
-	exclude: function ( patterns ) {
+	exclude ( patterns ) {
 		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns: patterns, exclude: true });
-	},
+		return new Transformer( this, include, { patterns, exclude: true });
+	}
 
-	grab: function () {
+	grab () {
 		var src = join.apply( null, arguments );
-		return new Transformer( this, grab, { src: src });
-	},
+		return new Transformer( this, grab, { src });
+	}
 
 	// Built-in transformers
-	include: function ( patterns ) {
+	include ( patterns ) {
 		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns: patterns });
-	},
+		return new Transformer( this, include, { patterns });
+	}
 
-	inspect: function ( target, options ) {
+	inspect ( target, options ) {
 		target = resolve( config.cwd, target );
 
 		if ( options && options.clean ) {
@@ -118,23 +124,23 @@ Node.prototype = assign( Object.create( EventEmitter2.prototype ), {
 
 		this.inspectTargets.push( target );
 		return this; // chainable
-	},
+	}
 
-	map: function ( fn, userOptions ) {
+	map ( fn, userOptions ) {
 		warnOnce( 'node.map() is deprecated. You should use node.transform() instead for both file and directory transforms' );
 		return this.transform( fn, userOptions );
-	},
+	}
 
-	moveTo: function () {
+	moveTo () {
 		var dest = join.apply( null, arguments );
 		return new Transformer( this, move, { dest: dest });
-	},
+	}
 
-	serve: function ( options ) {
+	serve ( options ) {
 		return serve( this, options );
-	},
+	}
 
-	transform: function ( fn, userOptions ) {
+	transform ( fn, userOptions ) {
 		var options;
 
 		if ( typeof fn === 'string' ) {
@@ -159,48 +165,22 @@ Node.prototype = assign( Object.create( EventEmitter2.prototype ), {
 
 		// Otherwise it's a directory transformer
 		return new Transformer( this, fn, userOptions );
-	},
+	}
 
-	watch: function ( options ) {
+	watch ( options ) {
 		return watch( this, options );
 	}
-});
-
-Node.extend = function ( methods ) {
-	var Child;
-
-	Child = function () {
-		EventEmitter2.call( this, {
-			wildcard: true
-		});
-
-		this.counter = 1;
-		this.inspectTargets = [];
-
-		this.init.apply( this, arguments );
-	};
-
-	Child.prototype = Object.create( Node.prototype );
-
-	Object.keys( methods ).forEach( function ( key ) {
-		Child.prototype[ key ] = methods[ key ];
-	});
-
-	return Child;
-};
-
-export default Node;
-
+}
 
 function tryToLoad ( plugin ) {
 	var gobbleError;
 
 	try {
-		return requireRelative( 'gobble-' + plugin, process.cwd() );
+		return requireRelative( `gobble-${plugin}`, process.cwd() );
 	} catch ( err ) {
-		if ( err.message === "Cannot find module 'gobble-" + plugin + "'" ) {
+		if ( err.message === `Cannot find module 'gobble-${plugin}'` ) {
 			gobbleError = new GobbleError({
-				message: 'Could not load gobble-' + plugin + ' plugin',
+				message: `Could not load gobble-${plugin} plugin`,
 				code: 'PLUGIN_NOT_FOUND',
 				plugin: plugin
 			});

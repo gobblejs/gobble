@@ -7,78 +7,76 @@ import uid from '../utils/uid';
 import session from '../session';
 import GobbleError from '../utils/GobbleError';
 
-export default Node.extend({
-	init: function ( dir, options ) {
-		var node = this, stats;
+export default class Source extends Node {
+	constructor ( dir, options = {} ) {
+		super();
 
-		options = options || {};
-
-		node.id = options.id || 'source';
-		node.dir = dir;
-		node.callbacks = [];
+		this.id = options.id || 'source';
+		this.dir = dir;
+		this.callbacks = [];
 
 		// Ensure the source exists, and is a directory
 		try {
-			stats = statSync( node.dir );
+			let stats = statSync( this.dir );
 
 			if ( !stats.isDirectory() ) {
-				node.file = dir;
-				node.dir = undefined;
+				this.file = dir;
+				this.dir = undefined;
 
-				node.uid = uid( node.id );
+				this.uid = uid( this.id );
 
-				node._ready = new Promise( function ( ok,  fail ) {
-					node._deferred = { ok: ok, fail: fail };
+				this._ready = new Promise( ( ok, fail ) => {
+					this._deferred = { ok, fail };
 				});
 			} else {
-				node._ready = Promise.resolve( node.dir );
+				this._ready = Promise.resolve( this.dir );
 			}
 		} catch ( err ) {
 			if ( err.code === 'ENOENT' ) {
 				throw new GobbleError({
 					code: 'MISSING_DIRECTORY',
 					path: dir,
-					message: 'the ' + dir + ' directory does not exist'
+					message: `the ${dir} directory does not exist`
 				});
 			}
 
 			throw err;
 		}
 
-		node.static = options && options.static;
-	},
+		this.static = options && options.static;
+	}
 
-	ready: function () {
+	ready () {
 		return this._ready;
-	},
+	}
 
-	start: function () {
-		var node = this, relay, options, watchError, changes = [];
+	start () {
+		var relay, options, watchError, changes = [];
 
-		if ( node._active || node.static ) {
+		if ( this._active || this.static ) {
 			return;
 		}
 
-		node._active = true;
+		this._active = true;
 
 		// this is a file watch that isn't fully initialized
 		if ( this._deferred ) {
-			node._makeReady();
+			this._makeReady();
 		}
 
 		// make sure the file is in the appropriate target directory to start
-		if ( node.file ) {
-			linkSync( node.file ).to( node.targetFile );
+		if ( this.file ) {
+			linkSync( this.file ).to( this.targetFile );
 		}
 
-		relay = debounce(function () {
+		relay = debounce( () => {
 			var error = new GobbleError({
 				code: 'INVALIDATED',
 				message: 'build invalidated',
 				changes: changes
 			});
 
-			node.emit( 'error', error );
+			this.emit( 'error', error );
 			changes = [];
 		}, 100 );
 
@@ -88,41 +86,39 @@ export default Node.extend({
 			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
 		};
 
-		node._watcher = watch( node.dir, options );
+		this._watcher = watch( this.dir, options );
 
-		[ 'add', 'change', 'unlink' ].forEach( function ( type ) {
-			node._watcher.on( type, function ( path ) {
-				changes.push({ type: type, path: path });
+		[ 'add', 'change', 'unlink' ].forEach( type => {
+			this._watcher.on( type, path => {
+				changes.push({ type, path });
 				relay();
 			});
 		});
 
-		watchError = function ( err ) {
-			var gobbleError;
-
-			gobbleError = new GobbleError({
-				message: 'error watching ' + node.dir + ': ' + err.message,
+		watchError = err => {
+			var gobbleError = new GobbleError({
+				message: 'error watching ' + this.dir + ': ' + err.message,
 				code: 'SOURCE_ERROR',
 				original: err
 			});
 
-			node.emit( 'error', gobbleError );
+			this.emit( 'error', gobbleError );
 		};
 
-		node._watcher.on( 'error', watchError );
+		this._watcher.on( 'error', watchError );
 
-		if ( node.file ) {
-			node._fileWatcher = watch( node.file, options );
+		if ( this.file ) {
+			this._fileWatcher = watch( this.file, options );
 
-			node._fileWatcher.on( 'change', function () {
-				link( node.file ).to( node.targetFile );
+			this._fileWatcher.on( 'change', () => {
+				link( this.file ).to( this.targetFile );
 			});
 
-			node._fileWatcher.on( 'error', watchError );
+			this._fileWatcher.on( 'error', watchError );
 		}
-	},
+	}
 
-	stop: function () {
+	stop () {
 		if ( this._watcher ) {
 			this._watcher.close();
 		}
@@ -132,30 +128,29 @@ export default Node.extend({
 		}
 
 		this._active = false;
-	},
+	}
 
-	_findCreator: function ( filename ) {
+	_findCreator ( filename ) {
 		try {
 			statSync( filename );
 			return this;
 		} catch ( err ) {
 			return null;
 		}
-	},
+	}
 
-	_makeReady: function () {
-		var node = this;
+	_makeReady () {
+		this.dir = resolve( session.config.gobbledir, this.uid );
+		this.targetFile = resolve( this.dir, basename( this.file ) );
 
-		node.dir = resolve( session.config.gobbledir, node.uid );
-		node.targetFile = resolve( node.dir, basename( node.file ) );
 		try {
-			mkdirSync( node.dir );
-			node._deferred.ok( node.dir );
+			mkdirSync( this.dir );
+			this._deferred.ok( this.dir );
 		} catch (e) {
-			node._deferred.fail( e );
+			this._deferred.fail( e );
 			throw e;
 		}
 
-		delete node._deferred;
+		delete this._deferred;
 	}
-});
+}
