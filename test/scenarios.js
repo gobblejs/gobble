@@ -317,6 +317,22 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'should print correct stack traces when errors occur', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+
+			task = source.transform( function ( input ) {
+				throw new Error( 'FAIL' );
+			}).serve();
+
+			task.on( 'error', function ( err ) {
+				assert.equal( err.code, 'TRANSFORMATION_FAILED' );
+				assert.equal( err.original.message, 'FAIL' );
+				assert.ok( !!err.stack );
+				assert.ok( ~err.stack.indexOf( 'scenarios.js' ) );
+				done();
+			});
+		});
 	});
 
 
