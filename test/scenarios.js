@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
 var request = require( 'request' );
-var gobble = require( '../' );
+var gobble = require( '../tmp' ).default;
 var sander = require( 'sander' );
 var simulateChange = require( './utils/simulateChange' );
 

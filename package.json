@@ -33,11 +33,14 @@
     "gobble"
   ],
   "devDependencies": {
+    "babel": "^4.6.1",
+    "esperanto": "^0.6.16",
     "mocha": "^2.1.0",
     "request": "^2.45.0"
   },
   "scripts": {
-    "prepublish": "set -e; mocha",
-    "test": "mocha"
+    "prepublish": "set -e; npm run build",
+    "test": "sh ./scripts/test.sh",
+    "build": "set -e; npm test; rm -rf lib; cp -r tmp lib"
   }
 }
