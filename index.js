@@ -1,2 +1,1 @@
-require( 'colors' );
-module.exports = require( './lib' );
+module.exports = require( './lib' ).default;
