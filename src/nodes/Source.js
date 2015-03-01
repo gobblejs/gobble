@@ -1,4 +1,4 @@
-import { basename, resolve } from 'path';
+import { basename, relative, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
 import { watch } from 'graceful-chokidar';
 import * as debounce from 'debounce';
@@ -74,6 +74,18 @@ export default class Source extends Node {
 				code: 'INVALIDATED',
 				message: 'build invalidated',
 				changes: changes
+			});
+
+			this.changes = changes.map( change => {
+				let result = {
+					file: relative( this.dir, change.path )
+				};
+
+				change.type === 'add'    && ( change.added = true );
+				change.type === 'change' && ( change.changed = true );
+				change.type === 'unlink' && ( change.removed = true );
+
+				return result;
 			});
 
 			this.emit( 'error', error );

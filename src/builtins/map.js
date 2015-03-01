@@ -1,5 +1,5 @@
 import { basename, extname, join, resolve, sep } from 'path';
-import * as crc32 from 'buffer-crc32';
+import * as chalk from 'chalk';
 import Queue from '../queue/Queue';
 import { link, lsr, readFile, stat, writeFile, Promise } from 'sander';
 import linkFile from '../file/link';
@@ -9,186 +9,183 @@ import compareBuffers from '../utils/compareBuffers';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 
-export default function map ( inputdir, outputdir, options ) {
-	var transformation = this;
+const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=[^\s]+/;
 
-	return new Promise( function ( fulfil, reject ) {
+export default function map ( inputdir, outputdir, options ) {
+	let changed = {};
+	this.changes.forEach( change => {
+		if ( !change.removed ) {
+			changed[ change.file ] = true;
+		}
+	});
+
+	return new Promise( ( fulfil, reject ) => {
 		var queue = new Queue();
 
 		queue.once( 'error', reject );
 
-		lsr( inputdir ).then( function ( files ) {
-			var promises = files.map( function ( filename ) {
+		lsr( inputdir ).then( files => {
+			var promises = files.map( filename => {
 				var ext = extname( filename ),
-					srcpath,
-					destpath,
-					destname,
-					mapdest;
+					src,
+					dest,
+					destname;
 
+				if ( this.aborted ) return;
+
+				// change extension if necessary, e.g. foo.coffee -> foo.js
 				destname = ( options.ext && ~options.accept.indexOf( ext ) ) ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
 
-				srcpath = join( inputdir, filename );
-				destpath = join( outputdir, destname );
-
-				mapdest = destpath + '.map';
+				src = join( inputdir, filename );
+				dest = join( outputdir, destname );
 
 				// If this mapper only accepts certain extensions, and this isn't
 				// one of them, just copy the file
-				if ( skip( options, ext, filename ) ) {
-					return link( srcpath ).to( destpath );
+				if ( shouldSkip( options, ext, filename ) ) {
+					return link( src ).to( dest );
 				}
 
-				return stat( srcpath ).then( function ( stats ) {
-					if ( stats.isDirectory() ) {
-						return;
-					}
+				// If this file *does* fall within this transformer's remit, but
+				// hasn't changed, we just copy the cached file
+				if ( !changed[ filename ] ) {
+					let cached = options.cache[ filename ];
+					return useCachedTransformation( cached, dest );
+				}
 
-					return readFile( srcpath ).then( function ( data ) {
-						var crc, previous, promises;
+				// Otherwise, we queue up a transformation
+				return queue.add( ( fulfil, reject ) => {
+					return readFile( src ).then( data => {
+						var result, filepath, creator, message, code, map;
 
-						if ( transformation.aborted ) {
-							return;
-						}
+						if ( this.aborted ) return;
 
-						// If the file contents haven't changed, we have nothing to do except
-						// copy the last successful transformation
-						crc = crc32( data );
-						previous = options.cache[ filename ];
-
-						if ( previous && compareBuffers( crc, previous.crc ) ) {
-							// if there's no sourcemap involved, we can just copy
-							// the previously generated code
-							if ( !previous.mapdest ) {
-								return link( previous.codepath ).to( destpath );
-							}
-
-							// otherwise, we need to write a new file with the correct
-							// sourceMappingURL. (TODO is this really the best way?
-							// What if sourcemaps had their own parallel situation? What
-							// if the sourcemap itself has changed? Need to investigate
-							// when I'm less pressed for time)
-							return readFile( previous.codepath ).then( String ).then( function ( code ) {
-								// remove any existing sourcemap comment
-								code = code.replace( /\/\/#\s*sourceMappingURL=[^\s]+/, '' ) +
-									'\n//# sourceMappingURL=' + mapdest;
-
-								return Promise.all([
-									writeFile( destpath, code ),
-									link( previous.mapdest ).to( mapdest )
-								]);
-							});
-						}
-
-						return queue.add( function ( fulfil, reject ) {
-							var result, filepath, creator, message, err, context, cacheobj, code, sourcemap, loc;
-
+						try {
 							// Create context object - this will be passed to transformers
-							context = {
-								src: srcpath,
-								dest: join( outputdir, destname ),
-								filename: filename,
-								mapdest: mapdest,
-								log: transformation.log,
-								env: config.env
+							let context = {
+								log: this.log,
+								env: config.env,
+								src, dest, filename
 							};
 
-							try {
-								result = options.fn.call( context, data.toString(), assign( {}, options.fn.defaults, options.userOptions ) );
-							} catch ( e ) {
-								if ( typeof e === 'string' ) {
-									err = new Error( e );
-								} else {
-									err = e;
-								}
+							let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
+							result = options.fn.call( context, data.toString(), transformOptions );
+						} catch ( e ) {
+							let err = createTransformError( e, src, filename, this.node );
+							return reject( err );
+						}
 
-								filepath = inputdir + sep + filename;
-								message = 'An error occurred while processing ' + filepath.magenta;
+						let codepath = resolve( this.cachedir, destname );
+						let mappath = `${codepath}.map`;
 
-								if ( creator = transformation.node.input._findCreator( filename ) ) {
-									message += ' (this file was created by the ' + creator.id + ' transformation)';
-								}
+						if ( typeof result === 'object' && result.code ) {
+							code = result.code;
+							map = processSourcemap( result.map, src, code );
+						} else {
+							code = result;
+						}
 
-								loc = extractLocationInfo( err );
-
-								err.file = srcpath;
-								err.line = loc.line;
-								err.column = loc.column;
-
-								return reject( err );
-							}
-
-							cacheobj = {
-								crc: crc,
-								codepath: resolve( transformation.cachedir, destname )
-							};
-
-							if ( typeof result === 'object' && result.code ) {
-								code = result.code;
-								sourcemap = processMap( result.map );
-							} else {
-								code = result;
-							}
-
-							promises = [ writeCode() ];
-
-							if ( sourcemap ) {
-								cacheobj.mapdest = resolve( transformation.cachedir, basename( mapdest ) );
-								promises.push( writeMap() );
-							}
-
-							Promise.all( promises ).then( function () {
-								options.cache[ filename ] = cacheobj;
-							}).then( fulfil, reject );
-
-							function processMap ( map ) {
-								if ( typeof map === 'string' ) {
-									map = JSON.parse( map );
-								}
-
-								if ( !map ) {
-									return null;
-								}
-
-								map.sources = [ srcpath ];
-								map.sourcesContent = [ data.toString() ];
-								return JSON.stringify( map );
-							}
-
-							function writeCode () {
-								if ( sourcemap ) {
-									// remove any existing sourcemap comment
-									code = code.replace( /\/\/#\s*sourceMappingURL=[^\s]+/, '' );
-									code += '\n//# sourceMappingURL=' + mapdest;
-								}
-
-								return writeFile( cacheobj.codepath, code ).then( function () {
-									// TODO use sander.link?
-									return linkFile( cacheobj.codepath ).to( context.dest );
-								});
-							}
-
-							function writeMap () {
-								return writeFile( cacheobj.mapdest, sourcemap ).then( function () {
-									return linkFile( cacheobj.mapdest ).to( mapdest );
-								});
-							}
-						}).catch( function ( err ) {
-							queue.abort();
-							throw err;
-						});
+						writeTransformedResult( code, map, codepath, mappath, dest )
+							.then( () => options.cache[ filename ] = { codepath, mappath } )
+							.then( fulfil )
+							.catch( reject );
 					});
+				}).catch( err => {
+					queue.abort();
+					throw err;
 				});
 			});
 
 			return Promise.all( promises );
-		}).then( function () {
+		}).then( () => {
 			queue.off( 'error', reject );
 			fulfil();
 		}, reject );
 	});
 }
 
-function skip(options, ext, filename) {
+function useCachedTransformation ( cached, dest ) {
+	// if there's no sourcemap involved, we can just copy
+	// the previously generated code
+	if ( !cached.mappath ) {
+		return link( cached.codepath ).to( dest );
+	}
+
+	// otherwise, we need to write a new file with the correct
+	// sourceMappingURL. (TODO is this really the best way?
+	// What if sourcemaps had their own parallel situation? What
+	// if the sourcemap itself has changed? Need to investigate
+	// when I'm less pressed for time)
+	return readFile( cached.codepath ).then( String ).then( code => {
+		// remove any existing sourcemap comment
+		code = code.replace( SOURCEMAP_COMMENT, '' ) +
+			`\n//# sourceMappingURL=${dest}.map`;
+
+		return Promise.all([
+			writeFile( dest, code ),
+			link( cached.mappath ).to( `${dest}.map` )
+		]);
+	});
+}
+
+function writeTransformedResult ( code, map, codepath, mappath, dest ) {
+	if ( !map ) {
+		return writeCode();
+	}
+
+	// remove any existing sourcemap comment
+	code = code.replace( SOURCEMAP_COMMENT, '' );
+	code += `\n//# sourceMappingURL=${dest}.map`;
+
+	return Promise.all([
+		writeCode(),
+		writeFile( mappath, map ).then( () => {
+			return linkFile( mappath ).to( `${dest}.map` );
+		})
+	]);
+
+	function writeCode () {
+		return writeFile( codepath, code ).then( () => {
+			// TODO use sander.link?
+			return linkFile( codepath ).to( dest );
+		});
+	}
+}
+
+function createTransformError ( original, src, filename, node ) {
+	let err = typeof original === 'string' ? new Error( original ) : original;
+
+	let message = 'An error occurred while processing ' + chalk.magenta( src );
+
+	let creator;
+
+	if ( creator = node.input._findCreator( filename ) ) {
+		message += ` (this file was created by the ${creator.id} transformation)`;
+	}
+
+	let { line, column } = extractLocationInfo( err );
+
+	err.file = src;
+	err.line = line;
+	err.column = column;
+
+	return err;
+}
+
+function processSourcemap ( map, src, data ) {
+	if ( typeof map === 'string' ) {
+		map = JSON.parse( map );
+	}
+
+	if ( !map ) {
+		return null;
+	}
+
+	map.sources = [ src ];
+	map.sourcesContent = [ data.toString() ];
+	return JSON.stringify( map );
+}
+
+function shouldSkip ( options, ext, filename ) {
 	var filter, i, flt;
 
 	if ( filter = options.accept ) {

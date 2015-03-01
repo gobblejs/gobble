@@ -1,6 +1,7 @@
 import { join, resolve } from 'path';
+import * as crc32 from 'buffer-crc32';
 import * as sander from 'sander';
-import { mkdir, readdirSync, rimrafSync } from 'sander';
+import { lsrSync, mkdir, readFileSync, readdirSync, rimrafSync } from 'sander';
 import Node from './Node';
 import session from '../session';
 import queue from '../queue';
@@ -28,7 +29,7 @@ export default class Transformer extends Node {
 		if ( transformer.length === 5 ) {
 			warnOnce( 'The gobble plugin API has changed - the "%s" transformer should take a single callback. See https://github.com/gobblejs/gobble/wiki/Troubleshooting for more info', this.name );
 
-			this.transformer = function ( inputdir, outputdir, options, callback ) {
+			this.transformer = ( inputdir, outputdir, options, callback ) => {
 				return transformer.call( this, inputdir, outputdir, options, function () {
 					callback();
 				}, callback );
@@ -69,8 +70,6 @@ export default class Transformer extends Node {
 						start = Date.now();
 
 						callback = err => {
-							var gobbleError, stack, loc;
-
 							if ( called ) {
 								return;
 							}
@@ -78,19 +77,15 @@ export default class Transformer extends Node {
 							called = true;
 
 							if ( err ) {
-								stack = err.stack || new Error().stack;
+								let stack = err.stack || new Error().stack;
+								let { file, line, column } = extractLocationInfo( err );
 
-								loc = extractLocationInfo( err );
-
-								gobbleError = new GobbleError({
+								let gobbleError = new GobbleError({
 									message: 'transformation failed',
 									id: this.id,
 									code: 'TRANSFORMATION_FAILED',
 									original: err,
-									stack: stack,
-									file: loc.file,
-									line: loc.line,
-									column: loc.column
+									stack, file, line, column
 								});
 
 								reject( gobbleError );
@@ -109,12 +104,12 @@ export default class Transformer extends Node {
 						};
 
 						try {
+							transformation.changes = this.input.changes || this.getChanges( inputdir );
+
 							promise = this.transformer.call( transformation, inputdir, outputdir, assign({}, this.options ), callback );
 
 							if ( promise && typeof promise.then === 'function' ) {
-								promise.then( function () {
-									callback(); // ensure no argument is passed
-								}).catch( callback );
+								promise.then( () => callback(), callback );
 							}
 						} catch ( err ) {
 							callback( err );
@@ -165,6 +160,38 @@ export default class Transformer extends Node {
 
 		this.input.stop();
 		this._active = false;
+	}
+
+	getChanges ( inputdir ) {
+		let files = lsrSync( inputdir );
+
+		if ( !this._files ) {
+			this._files = files;
+			this._checksums = {};
+
+			files.forEach( file => {
+				this._checksums[ file ] = crc32( readFileSync( inputdir, file ) );
+			});
+
+			return files.map( file => ({ file, added: true }) );
+		}
+
+		let added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
+		let removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
+
+		let maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
+
+		let changed = [];
+
+		maybeChanged.forEach( file => {
+			let checksum = crc32( readFileSync( inputdir, file ) );
+			if ( checksum !== this._checksums[ file ] ) {
+				changed.push({ file, changed: true });
+				this._checksums[ file ] = checksum;
+			}
+		});
+
+		return added.concat( removed ).concat( changed );
 	}
 
 	_cleanup ( latest ) {
