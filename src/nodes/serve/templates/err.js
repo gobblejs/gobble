@@ -1,4 +1,6 @@
-export default `<!doctype html>
+import compile from './compile';
+
+export default compile( `<!doctype html>
 <html>
 <head>
 	<meta charset='utf-8'>
@@ -68,4 +70,4 @@ export default `<!doctype html>
 
 	<ul class='stack'>{{stack}}</ul>
 </body>
-</html>`;
+</html>` );

@@ -1,9 +1,8 @@
-import fs from 'fs';
+import { basename, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
 import { watch } from 'graceful-chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
-import { basename, resolve } from 'path';
 import uid from '../utils/uid';
 import session from '../session';
 import GobbleError from '../utils/GobbleError';
@@ -137,7 +136,7 @@ export default Node.extend({
 
 	_findCreator: function ( filename ) {
 		try {
-			fs.statSync( filename );
+			statSync( filename );
 			return this;
 		} catch ( err ) {
 			return null;

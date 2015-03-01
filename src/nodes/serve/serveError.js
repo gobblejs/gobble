@@ -1,4 +1,6 @@
-import templates from './templates';
+import errTemplate from './templates/err';
+import waitingTemplate from './templates/waiting';
+import notfoundTemplate from './templates/notfound';
 
 const entities = {
 	'&': '&amp;',
@@ -23,64 +25,58 @@ const colors = {
 
 export default function serveError ( error, request, response ) {
 	if ( error.gobble === 'WAITING' ) {
-		templates.waiting().then( function ( template ) {
-			response.statusCode = 420;
-			response.write( template() );
+		response.statusCode = 420;
+		response.write( waitingTemplate() );
 
-			response.end();
-		});
+		response.end();
 	}
 
 	else if ( error.code === 'ENOENT' ) {
-		templates.notfound().then( function ( template ) {
-			var html = template({
-				path: error.path
-			});
-
-			response.statusCode = 404;
-			response.write( html );
-
-			response.end();
+		var html = notfoundTemplate({
+			path: error.path
 		});
+
+		response.statusCode = 404;
+		response.write( html );
+
+		response.end();
 	}
 
 	else {
-		templates.err().then( function ( template ) {
-			var html, id, message, filename;
+		var html, id, message, filename;
 
-			id = error.id;
-			message = escape( error.original ? error.original.message || error.original : error );
-			filename = error.original ? error.original.filename : error.filename;
+		id = error.id;
+		message = escape( error.original ? error.original.message || error.original : error );
+		filename = error.original ? error.original.filename : error.filename;
 
-			html = template({
-				id: id,
-				message: message.replace( /\[(\d+)m/g, function ( match, $1 ) {
-					var color;
+		html = errTemplate({
+			id: id,
+			message: message.replace( /\[(\d+)m/g, function ( match, $1 ) {
+				var color;
 
-					if ( match === '[39m' ) {
-						return '</span>';
-					}
+				if ( match === '[39m' ) {
+					return '</span>';
+				}
 
-					if ( color = colors[ $1 ] ) {
-						return '<span style="color:' + color + ';">';
-					}
+				if ( color = colors[ $1 ] ) {
+					return '<span style="color:' + color + ';">';
+				}
 
-					return '';
-				}), // remove colors
-				stack: prepareStack( error.stack ),
-				filemessage: filename ? '<p>The error occurred while processing <strong>' + filename + '</strong>.</p>' : ''
-			});
-
-			// turn filepaths into links
-			html = html.replace( /([>\s\(])(&#x2F[^\s\):<]+)/g, function ( match, $1, $2 ) {
-				return $1 + '<a href="/__gobble__' + $2 + '">' + $2 + '</a>';
-			});
-
-			response.statusCode = 500;
-			response.write( html );
-
-			response.end();
+				return '';
+			}), // remove colors
+			stack: prepareStack( error.stack ),
+			filemessage: filename ? '<p>The error occurred while processing <strong>' + filename + '</strong>.</p>' : ''
 		});
+
+		// turn filepaths into links
+		html = html.replace( /([>\s\(])(&#x2F[^\s\):<]+)/g, function ( match, $1, $2 ) {
+			return $1 + '<a href="/__gobble__' + $2 + '">' + $2 + '</a>';
+		});
+
+		response.statusCode = 500;
+		response.write( html );
+
+		response.end();
 	}
 }
 

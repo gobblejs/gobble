@@ -1,7 +1,7 @@
 import { EventEmitter2 } from 'eventemitter2';
 import { rimraf } from 'sander';
 import { join, resolve } from 'path';
-import requireRelative from 'require-relative';
+import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';
 import { Transformer } from './index';
 import config from '../config';

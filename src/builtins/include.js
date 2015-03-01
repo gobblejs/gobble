@@ -1,8 +1,8 @@
 import { readdir, stat } from 'graceful-fs';
 import { dirname, sep } from 'path';
 import { mkdirSync } from 'sander';
-import minimatch from 'minimatch';
-import symlinkOrCopy from 'symlink-or-copy';
+import *  as minimatch from 'minimatch';
+import { sync as symlinkOrCopy } from 'symlink-or-copy';
 
 export default function include ( inputdir, outputdir, options, callback ) {
 	var numPatterns = options.patterns.length;
@@ -46,7 +46,7 @@ export default function include ( inputdir, outputdir, options, callback ) {
 						mkdirSync( dirname( destpath ) );
 
 						try {
-							symlinkOrCopy.sync( filepath, destpath );
+							symlinkOrCopy( filepath, destpath );
 							check();
 						} catch ( e ) {
 							cb( e );

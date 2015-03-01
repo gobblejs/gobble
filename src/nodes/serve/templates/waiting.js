@@ -1,4 +1,6 @@
-export default `<!doctype html>
+import compile from './compile';
+
+export default compile( `<!doctype html>
 <html>
 <head>
 	<meta charset='utf-8'>
@@ -44,4 +46,4 @@ export default `<!doctype html>
 		}, 1000 );
 	</script>
 </body>
-</html>`;
+</html>` );

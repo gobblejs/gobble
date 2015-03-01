@@ -3,7 +3,7 @@ import { statSync } from 'graceful-fs';
 import { lookup } from 'mime';
 import { exists, readdir } from 'sander';
 import serveFile from './serveFile';
-import templates from './templates';
+import dirTemplate from './templates/dir';
 
 export default function serveDir( filepath, request, response ) {
 	var index = resolve( filepath, 'index.html' );
@@ -37,23 +37,19 @@ export default function serveDir( filepath, request, response ) {
 				return a.isDir ? -1 : 1;
 			});
 
-			return templates.dir().then( function ( dirTemplate ) {
-				var html;
-
-				html = dirTemplate({
-					url: request.url,
-					items: items.map( function ( item ) {
-						return '<li class="' + item.type + '"><a href="' + item.href + '">' + item.href + '</a></li>';
-					}).join( '' )
-				});
-
-				response.statusCode = 200;
-				response.setHeader( 'Content-Type', lookup( 'html' ) );
-				response.setHeader( 'Content-Length', html.length );
-
-				response.write( html );
-				response.end();
+			var html = dirTemplate({
+				url: request.url,
+				items: items.map( function ( item ) {
+					return '<li class="' + item.type + '"><a href="' + item.href + '">' + item.href + '</a></li>';
+				}).join( '' )
 			});
+
+			response.statusCode = 200;
+			response.setHeader( 'Content-Type', lookup( 'html' ) );
+			response.setHeader( 'Content-Length', html.length );
+
+			response.write( html );
+			response.end();
 		});
 	});
 }

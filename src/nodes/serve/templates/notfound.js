@@ -1,4 +1,6 @@
-export default `<!doctype html>
+import compile from './compile';
+
+export default compile( `<!doctype html>
 <html>
 <head>
 	<meta charset='utf-8'>
@@ -35,4 +37,4 @@ export default `<!doctype html>
 	<p>The file <strong>{{path}}</strong> does not exist.</p>
 	<p><a href='https://github.com/gobblejs/gobble/wiki/Troubleshooting'>See the troubleshooting page</a> if you're having problems getting your build to work as expected.</p>
 </body>
-</html>`;
+</html>` );

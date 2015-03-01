@@ -1,4 +1,6 @@
-export default `<!DOCTYPE html>
+import compile from './compile';
+
+export default compile( `<!DOCTYPE html>
 <html>
 	<head>
 		<title>{{url}}</title>
@@ -82,4 +84,4 @@ export default `<!DOCTYPE html>
 			</ul>
 		</main>
 	</body>
-</html>`;
+</html>` );
