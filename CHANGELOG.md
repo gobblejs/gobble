@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.6
+
+* Fixes a regression in 0.7.5 whereby directories with the same name would not be merged correctly (later directories would overwrite earlier ones)
+
 ## 0.7.5
 
 * The `accept` and `ext` options are deleted from the options object passed through to map transformers ([#36](https://github.com/gobblejs/gobble/issues/36))
