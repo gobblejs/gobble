@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5
+
+* The `accept` and `ext` options are deleted from the options object passed through to map transformers ([#36](https://github.com/gobblejs/gobble/issues/36))
+
 ## 0.7.4
 
 * Stack traces are preserved when errors are thrown inside transformations
