@@ -333,6 +333,28 @@ module.exports = function () {
 				done();
 			});
 		});
+
+		it( 'should delete unwanted options from map transformers', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+
+			task = source.transform( checkOptions ).serve();
+
+			function checkOptions ( code, options ) {
+				assert.ok( !options.accept );
+				assert.ok( !options.ext );
+
+				return code;
+			}
+
+			checkOptions.defaults = {
+				accept: '.md',
+				ext: '.txt'
+			};
+
+			task.on( 'built', function () {
+				done();
+			});
+		});
 	});
 
 
