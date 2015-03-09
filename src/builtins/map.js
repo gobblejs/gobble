@@ -67,6 +67,9 @@ export default function map ( inputdir, outputdir, options ) {
 							};
 
 							let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
+
+							delete transformOptions.accept;
+							delete transformOptions.ext;
 							result = options.fn.call( context, data.toString(), transformOptions );
 						} catch ( e ) {
 							let err = createTransformError( e, src, filename, this.node );
