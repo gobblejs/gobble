@@ -5,6 +5,6 @@ export default function cleanup ( dir ) {
 		return readdir( dir ).then( files => {
 			var promises = files.map( filename => rimraf( dir, filename ) );
 			return Promise.all( promises );
-		})
+		});
 	});
 }

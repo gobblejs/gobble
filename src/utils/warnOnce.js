@@ -1,3 +1,4 @@
+/*global console */
 import { format } from 'util';
 
 var alreadyWarned = {};

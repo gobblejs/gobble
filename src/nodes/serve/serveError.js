@@ -32,7 +32,7 @@ export default function serveError ( error, request, response ) {
 	}
 
 	else if ( error.code === 'ENOENT' ) {
-		var html = notfoundTemplate({
+		let html = notfoundTemplate({
 			path: error.path
 		});
 
@@ -43,13 +43,11 @@ export default function serveError ( error, request, response ) {
 	}
 
 	else {
-		var html, id, message, filename;
+		let id = error.id;
+		let message = escape( error.original ? error.original.message || error.original : error );
+		let filename = error.original ? error.original.filename : error.filename;
 
-		id = error.id;
-		message = escape( error.original ? error.original.message || error.original : error );
-		filename = error.original ? error.original.filename : error.filename;
-
-		html = errTemplate({
+		let html = errTemplate({
 			id: id,
 			message: message.replace( /\[(\d+)m/g, function ( match, $1 ) {
 				var color;

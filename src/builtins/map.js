@@ -1,11 +1,10 @@
-import { basename, extname, join, resolve, sep } from 'path';
+import { extname, join, resolve } from 'path';
 import * as chalk from 'chalk';
 import Queue from '../queue/Queue';
-import { link, lsr, readFile, stat, writeFile, Promise } from 'sander';
+import { link, lsr, readFile, writeFile, Promise } from 'sander';
 import linkFile from '../file/link';
 import assign from '../utils/assign';
 import config from '../config';
-import compareBuffers from '../utils/compareBuffers';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 
@@ -55,7 +54,7 @@ export default function map ( inputdir, outputdir, options ) {
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
 					return readFile( src ).then( data => {
-						var result, filepath, creator, message, code, map;
+						var result, code, map;
 
 						if ( this.aborted ) return;
 
