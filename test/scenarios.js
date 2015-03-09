@@ -355,6 +355,21 @@ module.exports = function () {
 				done();
 			});
 		});
+
+		it( 'should merge directories with the same name', function ( done ) {
+			task = gobble([ 'tmp/bar/a', 'tmp/bar/b' ]).serve();
+
+			task.on( 'built', function () {
+				request( 'http://localhost:4567/dir/a.md', function ( err, response, body ) {
+					assert.equal( body, 'this is a.md' );
+
+					request( 'http://localhost:4567/dir/b.md', function ( err, response, body ) {
+						assert.equal( body, 'this is b.md' );
+						done();
+					});
+				});
+			});
+		});
 	});
 
 

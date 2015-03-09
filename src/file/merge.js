@@ -62,7 +62,7 @@ function convertToRealDir ( symlinkPath ) {
 	unlinkSync( symlinkPath );
 	mkdirSync( symlinkPath );
 
-	readdirSync( originalPath ).forEach( function ( filename ) {
-		symlinkSync( originalPath + sep + filename, symlinkPath + sep + filename );
+	readdirSync( originalPath ).forEach( filename => {
+		symlinkSync( originalPath + sep + filename ).to( symlinkPath + sep + filename );
 	});
 }
