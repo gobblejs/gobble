@@ -389,6 +389,28 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'populates auto-generated sourcemaps with the correct sourcesContent', function ( done ) {
+			task = gobble( 'tmp/foo' ).transform( copy ).serve();
+
+			function copy ( input ) {
+				return {
+					code: input.toUpperCase(),
+					map: {}
+				};
+			}
+
+			task.on( 'error', done );
+			task.on( 'built', function () {
+				request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+					var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
+					sander.readFile( sourceMappingURL ).then( String ).then( JSON.parse ).then( function ( map ) {
+						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+						done();
+					}).catch( done );
+				});
+			});
+		});
 	});
 
 

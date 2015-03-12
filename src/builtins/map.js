@@ -53,7 +53,7 @@ export default function map ( inputdir, outputdir, options ) {
 
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
-					return readFile( src ).then( data => {
+					return readFile( src ).then( String ).then( data => {
 						var result, code, map;
 
 						if ( this.aborted ) return;
@@ -70,7 +70,7 @@ export default function map ( inputdir, outputdir, options ) {
 
 							delete transformOptions.accept;
 							delete transformOptions.ext;
-							result = options.fn.call( context, data.toString(), transformOptions );
+							result = options.fn.call( context, data, transformOptions );
 						} catch ( e ) {
 							let err = createTransformError( e, src, filename, this.node );
 							return reject( err );
@@ -81,7 +81,7 @@ export default function map ( inputdir, outputdir, options ) {
 
 						if ( typeof result === 'object' && result.code ) {
 							code = result.code;
-							map = processSourcemap( result.map, src, code );
+							map = processSourcemap( result.map, src, dest, data );
 						} else {
 							code = result;
 						}
@@ -173,7 +173,7 @@ function createTransformError ( original, src, filename, node ) {
 	return err;
 }
 
-function processSourcemap ( map, src, data ) {
+function processSourcemap ( map, src, dest, data ) {
 	if ( typeof map === 'string' ) {
 		map = JSON.parse( map );
 	}
@@ -182,8 +182,9 @@ function processSourcemap ( map, src, data ) {
 		return null;
 	}
 
+	map.file = dest;
 	map.sources = [ src ];
-	map.sourcesContent = [ data.toString() ];
+	map.sourcesContent = [ data ];
 	return JSON.stringify( map );
 }
 
