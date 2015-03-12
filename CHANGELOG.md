@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.8
+
+* Auto-generated sourcemaps have the correct `sourcesContent`
+
 ## 0.7.7
 
 * Auto-generated sourcemap names are deconflicted ([#38](https://github.com/gobblejs/gobble/issues/38))
