@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.7
+
+* Auto-generated sourcemap names are deconflicted ([#38](https://github.com/gobblejs/gobble/issues/38))
+
 ## 0.7.6
 
 * Fixes a regression in 0.7.5 whereby directories with the same name would not be merged correctly (later directories would overwrite earlier ones)
