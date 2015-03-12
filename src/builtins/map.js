@@ -48,7 +48,7 @@ export default function map ( inputdir, outputdir, options ) {
 				// hasn't changed, we just copy the cached file
 				if ( !changed[ filename ] ) {
 					let cached = options.cache[ filename ];
-					return useCachedTransformation( cached, dest );
+					return useCachedTransformation( this.node, cached, dest );
 				}
 
 				// Otherwise, we queue up a transformation
@@ -77,7 +77,7 @@ export default function map ( inputdir, outputdir, options ) {
 						}
 
 						let codepath = resolve( this.cachedir, destname );
-						let mappath = `${codepath}.map`;
+						let mappath = `${codepath}.${this.node.id}.map`;
 
 						if ( typeof result === 'object' && result.code ) {
 							code = result.code;
@@ -86,7 +86,7 @@ export default function map ( inputdir, outputdir, options ) {
 							code = result;
 						}
 
-						writeTransformedResult( code, map, codepath, mappath, dest )
+						writeTransformedResult( this.node, code, map, codepath, mappath, dest )
 							.then( () => options.cache[ filename ] = { codepath, mappath } )
 							.then( fulfil )
 							.catch( reject );
@@ -105,7 +105,7 @@ export default function map ( inputdir, outputdir, options ) {
 	});
 }
 
-function useCachedTransformation ( cached, dest ) {
+function useCachedTransformation ( node, cached, dest ) {
 	// if there's no sourcemap involved, we can just copy
 	// the previously generated code
 	if ( !cached.mappath ) {
@@ -120,28 +120,28 @@ function useCachedTransformation ( cached, dest ) {
 	return readFile( cached.codepath ).then( String ).then( code => {
 		// remove any existing sourcemap comment
 		code = code.replace( SOURCEMAP_COMMENT, '' ) +
-			`\n//# sourceMappingURL=${dest}.map`;
+			`\n//# sourceMappingURL=${dest}.${node.id}.map`;
 
 		return Promise.all([
 			writeFile( dest, code ),
-			link( cached.mappath ).to( `${dest}.map` )
+			link( cached.mappath ).to( `${dest}.${node.id}.map` )
 		]);
 	});
 }
 
-function writeTransformedResult ( code, map, codepath, mappath, dest ) {
+function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
 	if ( !map ) {
 		return writeCode();
 	}
 
 	// remove any existing sourcemap comment
 	code = code.replace( SOURCEMAP_COMMENT, '' );
-	code += `\n//# sourceMappingURL=${dest}.map`;
+	code += `\n//# sourceMappingURL=${dest}.${node.id}.map`;
 
 	return Promise.all([
 		writeCode(),
 		writeFile( mappath, map ).then( () => {
-			return linkFile( mappath ).to( `${dest}.map` );
+			return linkFile( mappath ).to( `${dest}.${node.id}.map` );
 		})
 	]);
 

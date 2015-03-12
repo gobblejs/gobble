@@ -370,6 +370,25 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'should deconflict automatically generated sourcemaps (#38)', function ( done ) {
+			task = gobble( 'tmp/foo' ).transform( copy ).transform( copy ).serve();
+
+			function copy ( input ) {
+				return {
+					code: input,
+					map: {}
+				};
+			}
+
+			task.on( 'error', done );
+			task.on( 'built', function () {
+				request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+					assert.ok( /^foo: this is some text/.test( body ) );
+					done();
+				});
+			});
+		});
 	});
 
 
