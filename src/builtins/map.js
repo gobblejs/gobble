@@ -54,7 +54,7 @@ export default function map ( inputdir, outputdir, options ) {
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
 					return readFile( src ).then( String ).then( data => {
-						var result, code, map;
+						var result, code, map, mappath;
 
 						if ( this.aborted ) return;
 
@@ -77,11 +77,11 @@ export default function map ( inputdir, outputdir, options ) {
 						}
 
 						let codepath = resolve( this.cachedir, destname );
-						let mappath = `${codepath}.${this.node.id}.map`;
 
 						if ( typeof result === 'object' && result.code ) {
 							code = result.code;
 							map = processSourcemap( result.map, src, dest, data );
+							mappath = `${codepath}.${this.node.id}.map`;
 						} else {
 							code = result;
 						}

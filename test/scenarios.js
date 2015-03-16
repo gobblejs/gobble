@@ -411,6 +411,33 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'should not make a file transform without a sourcemap sprout an invalid one', function ( done ) {
+			sander.writeFileSync( 'tmp/dynamic/baz', 'step1' );
+			var source = gobble( 'tmp/dynamic' );
+
+			function toTxt ( input ) {
+				return input;
+			}
+
+			task = source.transform( toTxt ).watch({ dest: 'tmp/output' });
+
+			task.once( 'built', function () {
+				task.once( 'built', function () {
+					var content = sander.readFileSync( 'tmp/output/baz' );
+					assert.equal( content, 'step2' );
+					done();
+				});
+
+				sander.writeFileSync( 'tmp/dynamic/baz', 'step2' );
+			});
+
+			task.on( 'error', function ( err ) {
+				setTimeout( function () {
+					throw err;
+				});
+			});
+		});
 	});
 
 
