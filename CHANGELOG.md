@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.9
+
+* Prevent map transforms generating phantom sourcemaps on incremental builds ([#39](https://github.com/gobblejs/gobble/issues/39))
+
 ## 0.7.8
 
 * Auto-generated sourcemaps have the correct `sourcesContent`
