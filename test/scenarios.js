@@ -430,6 +430,11 @@ module.exports = function () {
 				});
 
 				sander.writeFileSync( 'tmp/dynamic/baz', 'step2' );
+
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/dynamic/baz'
+				});
 			});
 
 			task.on( 'error', function ( err ) {
