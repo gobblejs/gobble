@@ -53,23 +53,24 @@ export default function map ( inputdir, outputdir, options ) {
 
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
-					return readFile( src ).then( String ).then( data => {
+					// Create context object - this will be passed to transformers
+					let context = {
+						log: this.log,
+						env: config.env,
+						src, dest, filename
+					};
+
+					let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
+
+					delete transformOptions.accept;
+					delete transformOptions.ext;
+
+					return readFile( src ).then( buffer => buffer.toString( transformOptions.sourceEncoding ) ).then( data => {
 						var result, code, map, mappath;
 
 						if ( this.aborted ) return;
 
 						try {
-							// Create context object - this will be passed to transformers
-							let context = {
-								log: this.log,
-								env: config.env,
-								src, dest, filename
-							};
-
-							let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
-
-							delete transformOptions.accept;
-							delete transformOptions.ext;
 							result = options.fn.call( context, data, transformOptions );
 						} catch ( e ) {
 							let err = createTransformError( e, src, filename, this.node );

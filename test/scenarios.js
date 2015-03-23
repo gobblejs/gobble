@@ -443,6 +443,35 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'should use the specified encoding when reading files', function () {
+			var source = gobble( 'tmp/foo' ), count = 0, foundBar = false;
+
+			function plugin ( input, options ) {
+				count++;
+
+				if(this.filename === 'bar.md') {
+					foundBar = true;
+
+					assert.equal(
+						new Buffer( input, 'base64' ).toString('utf8').trim(),
+						'bar: this is some text'
+					);
+				}
+
+				return input.toString( 'base64' );
+			}
+			plugin.defaults = {sourceEncoding: 'base64'};
+
+			task = source.transform( plugin ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 3 );
+				assert( foundBar );
+			});
+		});
 	});
 
 
