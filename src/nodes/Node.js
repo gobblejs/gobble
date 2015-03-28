@@ -80,7 +80,7 @@ export default class Node extends EventEmitter2 {
 					watchTask.emit( 'info', {
 						code: 'BUILD_INVALIDATED',
 						changes: e.changes
-					});//util.format( 'build invalidated (%s). restarting', summariseChanges( e.changes ) ) );
+					});
 
 					process.nextTick( build );
 				}
