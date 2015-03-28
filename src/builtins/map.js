@@ -46,9 +46,8 @@ export default function map ( inputdir, outputdir, options ) {
 
 				// If this file *does* fall within this transformer's remit, but
 				// hasn't changed, we just copy the cached file
-				if ( !changed[ filename ] ) {
-					let cached = options.cache[ filename ];
-					return useCachedTransformation( this.node, cached, dest );
+				if ( !changed[ filename ] && options.cache.hasOwnProperty( filename ) ) {
+					return useCachedTransformation( this.node, options.cache[ filename ], dest );
 				}
 
 				// Otherwise, we queue up a transformation
@@ -76,7 +75,7 @@ export default function map ( inputdir, outputdir, options ) {
 							return reject( err );
 						}
 
-						let codepath = resolve( this.cachedir, destname );
+						let codepath = resolve( this.cachedir, filename );
 
 						if ( typeof result === 'object' && result.code ) {
 							code = result.code;
