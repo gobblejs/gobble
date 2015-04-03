@@ -53,7 +53,7 @@ export default function map ( inputdir, outputdir, options ) {
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
 					if ( this.aborted ) {
-						return reject();
+						return reject( this.aborted );
 					}
 
 					// Create context object - this will be passed to transformers
@@ -71,7 +71,7 @@ export default function map ( inputdir, outputdir, options ) {
 					return readFile( src ).then( buffer => buffer.toString( transformOptions.sourceEncoding ) ).then( data => {
 						var result, code, map, mappath;
 
-						if ( this.aborted ) return reject();
+						if ( this.aborted ) return reject( this.aborted );
 
 						try {
 							result = options.fn.call( context, data, transformOptions );

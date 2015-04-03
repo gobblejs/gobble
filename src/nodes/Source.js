@@ -70,12 +70,6 @@ export default class Source extends Node {
 		}
 
 		relay = debounce( () => {
-			var error = new GobbleError({
-				code: 'INVALIDATED',
-				message: 'build invalidated',
-				changes: changes
-			});
-
 			this.changes = changes.map( change => {
 				let result = {
 					file: relative( this.dir, change.path )
@@ -88,7 +82,7 @@ export default class Source extends Node {
 				return result;
 			});
 
-			this.emit( 'error', error );
+			this.emit( 'invalidate', changes );
 			changes = [];
 		}, 100 );
 
@@ -107,7 +101,8 @@ export default class Source extends Node {
 			});
 		});
 
-		watchError = err => {
+		// TODO
+		/*watchError = err => {
 			var gobbleError = new GobbleError({
 				message: 'error watching ' + this.dir + ': ' + err.message,
 				code: 'SOURCE_ERROR',
@@ -117,7 +112,7 @@ export default class Source extends Node {
 			this.emit( 'error', gobbleError );
 		};
 
-		this._watcher.on( 'error', watchError );
+		this._watcher.on( 'error', watchError );*/
 
 		if ( this.file ) {
 			this._fileWatcher = watch( this.file, options );

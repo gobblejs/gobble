@@ -19,12 +19,12 @@ export default class Merger extends Node {
 		var aborted, index, outputdir;
 
 		if ( !this._ready ) {
-			this._abort = () => {
+			this._abort = ( changes ) => {
 				// allows us to short-circuit operations at various points
 				aborted = new GobbleError({
-					code: 'MERGE_ABORTED',
-					id: this.id,
-					message: 'merge aborted'
+					changes,
+					code: 'BUILD_INVALIDATED',
+					message: 'build invalidated'
 				});
 
 				this._ready = null;
@@ -52,10 +52,7 @@ export default class Merger extends Node {
 					});
 
 					return mapSeries( inputdirs, inputdir => {
-						if ( aborted ) {
-							throw aborted;
-						}
-
+						if ( aborted ) throw aborted;
 						return merge( inputdir ).to( outputdir );
 					});
 				}).then( () => {
@@ -84,9 +81,9 @@ export default class Merger extends Node {
 
 		this._active = true;
 
-		this._onerror = err => {
-			this._abort();
-			this.emit( 'error', err );
+		this._oninvalidate = changes => {
+			this._abort( changes );
+			this.emit( 'invalidate', changes );
 		};
 
 		this._oninfo = details => {
@@ -94,7 +91,7 @@ export default class Merger extends Node {
 		};
 
 		this.inputs.forEach( input => {
-			input.on( 'error', this._onerror );
+			input.on( 'invalidate', this._oninvalidate );
 			input.on( 'info', this._oninfo );
 
 			input.start();
@@ -103,7 +100,7 @@ export default class Merger extends Node {
 
 	stop () {
 		this.inputs.forEach( input => {
-			input.off( 'error', this._onerror );
+			input.off( 'invalidate', this._oninvalidate );
 			input.off( 'info', this._oninfo );
 
 			input.stop();
