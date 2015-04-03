@@ -46,44 +46,46 @@ export default function map ( inputdir, outputdir, options ) {
 
 				// If this file *does* fall within this transformer's remit, but
 				// hasn't changed, we just copy the cached file
-				if ( !changed[ filename ] ) {
-					let cached = options.cache[ filename ];
-					return useCachedTransformation( this.node, cached, dest );
+				if ( !changed[ filename ] && options.cache.hasOwnProperty( filename ) ) {
+					return useCachedTransformation( this.node, options.cache[ filename ], dest );
 				}
 
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
-					return readFile( src ).then( String ).then( data => {
-						var result, code, map;
+					if ( this.aborted ) {
+						return reject();
+					}
 
-						if ( this.aborted ) {
-							return reject();
-						}
+					// Create context object - this will be passed to transformers
+					let context = {
+						log: this.log,
+						env: config.env,
+						src, dest, filename
+					};
+
+					let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
+
+					delete transformOptions.accept;
+					delete transformOptions.ext;
+
+					return readFile( src ).then( buffer => buffer.toString( transformOptions.sourceEncoding ) ).then( data => {
+						var result, code, map, mappath;
+
+						if ( this.aborted ) return reject();
 
 						try {
-							// Create context object - this will be passed to transformers
-							let context = {
-								log: this.log,
-								env: config.env,
-								src, dest, filename
-							};
-
-							let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
-
-							delete transformOptions.accept;
-							delete transformOptions.ext;
 							result = options.fn.call( context, data, transformOptions );
 						} catch ( e ) {
 							let err = createTransformError( e, src, filename, this.node );
 							return reject( err );
 						}
 
-						let codepath = resolve( this.cachedir, destname );
-						let mappath = `${codepath}.${this.node.id}.map`;
+						let codepath = resolve( this.cachedir, filename );
 
 						if ( typeof result === 'object' && result.code ) {
 							code = result.code;
 							map = processSourcemap( result.map, src, dest, data );
+							mappath = `${codepath}.${this.node.id}.map`;
 						} else {
 							code = result;
 						}

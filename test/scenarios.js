@@ -411,6 +411,67 @@ module.exports = function () {
 				});
 			});
 		});
+
+		it( 'should not make a file transform without a sourcemap sprout an invalid one', function ( done ) {
+			sander.writeFileSync( 'tmp/dynamic/baz', 'step1' );
+			var source = gobble( 'tmp/dynamic' );
+
+			function toTxt ( input ) {
+				return input;
+			}
+
+			task = source.transform( toTxt ).watch({ dest: 'tmp/output' });
+
+			task.once( 'built', function () {
+				task.once( 'built', function () {
+					var content = sander.readFileSync( 'tmp/output/baz' );
+					assert.equal( content, 'step2' );
+					done();
+				});
+
+				sander.writeFileSync( 'tmp/dynamic/baz', 'step2' );
+
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/dynamic/baz'
+				});
+			});
+
+			task.on( 'error', function ( err ) {
+				setTimeout( function () {
+					throw err;
+				});
+			});
+		});
+
+		it( 'should use the specified encoding when reading files', function () {
+			var source = gobble( 'tmp/foo' ), count = 0, foundBar = false;
+
+			function plugin ( input, options ) {
+				count++;
+
+				if(this.filename === 'bar.md') {
+					foundBar = true;
+
+					assert.equal(
+						new Buffer( input, 'base64' ).toString('utf8').trim(),
+						'bar: this is some text'
+					);
+				}
+
+				return input.toString( 'base64' );
+			}
+			plugin.defaults = {sourceEncoding: 'base64'};
+
+			task = source.transform( plugin ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 3 );
+				assert( foundBar );
+			});
+		});
 	});
 
 
