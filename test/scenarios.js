@@ -472,6 +472,43 @@ module.exports = function () {
 				assert( foundBar );
 			});
 		});
+
+		it( 'handles invalidations that take place during file transformations (#41)', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+			var shouldInvalidate = false;
+
+			function cacheBust ( input ) {
+				return '' + Math.random();
+			}
+
+			function maybeInvalidate ( input ) {
+				if ( shouldInvalidate ) {
+					simulateChange( source, {
+						type: 'change',
+						path: 'tmp/foo/foo.md'
+					});
+				}
+
+				return Math.random();
+			}
+
+			task = source.transform( cacheBust ).transform( maybeInvalidate ).serve();
+
+			task.once( 'built', function () {
+				task.once( 'built', function () {
+					done();
+				});
+
+				shouldInvalidate = true;
+
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/foo/foo.md'
+				});
+			});
+
+			task.on( 'error', done );
+		});
 	});
 
 
