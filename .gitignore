@@ -5,3 +5,4 @@ node_modules
 .gobble-watch
 .babel
 tmp
+lib
