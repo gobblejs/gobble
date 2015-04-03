@@ -56,8 +56,8 @@ export default class Transformer extends Node {
 
 			outputdir = resolve( session.config.gobbledir, this.id, '' + this.counter++ );
 
-			this._ready = mkdir( outputdir ).then( () => {
-				return this.input.ready().then( inputdir => {
+			this._ready = this.input.ready().then( inputdir => {
+				return mkdir( outputdir ).then( () => {
 					return queue.add( ( fulfil, reject ) => {
 						var promise, called, callback, start;
 
@@ -115,12 +115,12 @@ export default class Transformer extends Node {
 							callback( err );
 						}
 					});
-				}).catch( err => {
-					this._abort();
-					queue.abort();
-
-					throw err;
 				});
+			}).catch( err => {
+				this._abort();
+				queue.abort();
+
+				throw err;
 			});
 		}
 
