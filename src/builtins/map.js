@@ -56,7 +56,9 @@ export default function map ( inputdir, outputdir, options ) {
 					return readFile( src ).then( String ).then( data => {
 						var result, code, map;
 
-						if ( this.aborted ) return;
+						if ( this.aborted ) {
+							return reject();
+						}
 
 						try {
 							// Create context object - this will be passed to transformers
