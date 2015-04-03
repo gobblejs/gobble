@@ -82,6 +82,7 @@ export default class Transformer extends Node {
 
 								let gobbleError = new GobbleError({
 									message: 'transformation failed',
+									inputdir, outputdir,
 									id: this.id,
 									code: 'TRANSFORMATION_FAILED',
 									original: err,
