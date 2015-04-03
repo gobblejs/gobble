@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.10
+
+* Prevent source changes during file transformations causing transformer promise to never resolve ([#41](https://github.com/gobblejs/gobble/issues/41))
+
 ## 0.7.9
 
 * Prevent map transforms generating phantom sourcemaps on incremental builds ([#39](https://github.com/gobblejs/gobble/issues/39))
