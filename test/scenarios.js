@@ -487,6 +487,7 @@ module.exports = function () {
 						type: 'change',
 						path: 'tmp/foo/foo.md'
 					});
+					shouldInvalidate = false;
 				}
 
 				return Math.random();

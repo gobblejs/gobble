@@ -12,6 +12,7 @@ import serve from './serve';
 import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
+import { ABORTED } from '../utils/signals';
 
 export default class Node extends EventEmitter2 {
 	constructor () {
@@ -49,6 +50,20 @@ export default class Node extends EventEmitter2 {
 			watchTask.emit( 'info', details );
 		});
 
+		node.on( 'invalidate', changes => {
+			// A node can depend on the same source twice, which will result in
+			// simultaneous rebuilds unless we defer it to the next tick
+			if ( !buildScheduled ) {
+				buildScheduled = true;
+				watchTask.emit( 'info', {
+					code: 'BUILD_INVALIDATED',
+					changes: changes
+				});
+
+				process.nextTick( build );
+			}
+		});
+
 		node.on( 'error', handleError );
 
 		function build () {
@@ -68,22 +83,10 @@ export default class Node extends EventEmitter2 {
 		}
 
 		function handleError ( e ) {
-			if ( e.code === 'MERGE_ABORTED' ) {
+			if ( e === ABORTED ) {
+				// these happen shortly after an invalidation,
+				// we can ignore them
 				return;
-			}
-
-			if ( e.code === 'INVALIDATED' ) {
-				// A node can depend on the same source twice, which will result in
-				// simultaneous rebuilds unless we defer it to the next tick
-				if ( !buildScheduled ) {
-					buildScheduled = true;
-					watchTask.emit( 'info', {
-						code: 'BUILD_INVALIDATED',
-						changes: e.changes
-					});
-
-					process.nextTick( build );
-				}
 			} else {
 				watchTask.emit( 'error', e );
 			}

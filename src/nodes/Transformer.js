@@ -12,6 +12,7 @@ import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
+import { ABORTED } from '../utils/signals';
 
 export default class Transformer extends Node {
 	constructor ( input, transformer, options, id ) {
@@ -49,7 +50,7 @@ export default class Transformer extends Node {
 				sander: sander
 			};
 
-			this._abort = () => {
+			this._abort = ( changes ) => {
 				this._ready = null;
 				transformation.aborted = true;
 			};
@@ -76,12 +77,17 @@ export default class Transformer extends Node {
 
 							called = true;
 
-							if ( err ) {
+							if ( transformation.aborted ) {
+								reject( ABORTED );
+							}
+
+							else if ( err ) {
 								let stack = err.stack || new Error().stack;
 								let { file, line, column } = extractLocationInfo( err );
 
 								let gobbleError = new GobbleError({
 									message: 'transformation failed',
+									inputdir, outputdir,
 									id: this.id,
 									code: 'TRANSFORMATION_FAILED',
 									original: err,
@@ -116,11 +122,6 @@ export default class Transformer extends Node {
 						}
 					});
 				});
-			}).catch( err => {
-				this._abort();
-				queue.abort();
-
-				throw err;
 			});
 		}
 
@@ -135,27 +136,23 @@ export default class Transformer extends Node {
 		this._active = true;
 
 		// Propagate errors and information
-		this._onerror = err => {
-			this._abort();
-			this.emit( 'error', err );
+		this._oninvalidate = changes => {
+			this._abort( changes );
+			this.emit( 'invalidate', changes );
 		};
 
 		this._oninfo = details => {
 			this.emit( 'info', details );
 		};
 
-		this.input.on( 'error', this._onerror );
+		this.input.on( 'invalidate', this._oninvalidate );
 		this.input.on( 'info', this._oninfo );
 
-		mkdir( session.config.gobbledir, this.id ).then( () => {
-			this.input.start();
-		}).catch( err => {
-			this.emit( 'error', err );
-		});
+		return mkdir( session.config.gobbledir, this.id ).then( () => this.input.start() );
 	}
 
 	stop () {
-		this.input.off( 'error', this._onerror );
+		this.input.off( 'invalidate', this._oninvalidate );
 		this.input.off( 'info', this._oninfo );
 
 		this.input.stop();
