@@ -5,7 +5,7 @@ import Node from './Node';
 import session from '../session';
 import merge from '../file/merge';
 import uid from '../utils/uid';
-import GobbleError from '../utils/GobbleError';
+import { ABORTED } from '../utils/signals';
 
 export default class Merger extends Node {
 	constructor ( inputs, options ) {
@@ -21,12 +21,7 @@ export default class Merger extends Node {
 		if ( !this._ready ) {
 			this._abort = ( changes ) => {
 				// allows us to short-circuit operations at various points
-				aborted = new GobbleError({
-					changes,
-					code: 'BUILD_INVALIDATED',
-					message: 'build invalidated'
-				});
-
+				aborted = true;
 				this._ready = null;
 			};
 
@@ -37,7 +32,7 @@ export default class Merger extends Node {
 				var start, inputdirs = [];
 
 				return mapSeries( this.inputs, function ( input, i ) {
-					if ( aborted ) throw aborted;
+					if ( aborted ) throw ABORTED;
 
 					return input.ready().then( function ( inputdir ) {
 						inputdirs[i] = inputdir;
@@ -52,11 +47,11 @@ export default class Merger extends Node {
 					});
 
 					return mapSeries( inputdirs, inputdir => {
-						if ( aborted ) throw aborted;
+						if ( aborted ) throw ABORTED;
 						return merge( inputdir ).to( outputdir );
 					});
 				}).then( () => {
-					if ( aborted ) throw aborted;
+					if ( aborted ) throw ABORTED;
 
 					this._cleanup( index );
 

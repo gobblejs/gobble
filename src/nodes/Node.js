@@ -12,6 +12,7 @@ import serve from './serve';
 import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
+import { ABORTED } from '../utils/signals';
 
 export default class Node extends EventEmitter2 {
 	constructor () {
@@ -82,7 +83,7 @@ export default class Node extends EventEmitter2 {
 		}
 
 		function handleError ( e ) {
-			if ( e.code === 'BUILD_INVALIDATED' ) {
+			if ( e === ABORTED ) {
 				// these happen shortly after an invalidation,
 				// we can ignore them
 				return;

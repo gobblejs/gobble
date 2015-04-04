@@ -7,6 +7,7 @@ import assign from '../utils/assign';
 import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
+import { ABORTED } from '../utils/signals';
 
 const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=[^\s]+/;
 
@@ -53,7 +54,7 @@ export default function map ( inputdir, outputdir, options ) {
 				// Otherwise, we queue up a transformation
 				return queue.add( ( fulfil, reject ) => {
 					if ( this.aborted ) {
-						return reject( this.aborted );
+						return reject( ABORTED );
 					}
 
 					// Create context object - this will be passed to transformers
@@ -71,7 +72,7 @@ export default function map ( inputdir, outputdir, options ) {
 					return readFile( src ).then( buffer => buffer.toString( transformOptions.sourceEncoding ) ).then( data => {
 						var result, code, map, mappath;
 
-						if ( this.aborted ) return reject( this.aborted );
+						if ( this.aborted ) return reject( ABORTED );
 
 						try {
 							result = options.fn.call( context, data, transformOptions );

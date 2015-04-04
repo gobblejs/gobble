@@ -12,6 +12,7 @@ import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
+import { ABORTED } from '../utils/signals';
 
 export default class Transformer extends Node {
 	constructor ( input, transformer, options, id ) {
@@ -51,11 +52,7 @@ export default class Transformer extends Node {
 
 			this._abort = ( changes ) => {
 				this._ready = null;
-				transformation.aborted = new GobbleError({
-					changes,
-					code: 'BUILD_INVALIDATED',
-					message: 'build invalidated'
-				});
+				transformation.aborted = true;
 			};
 
 			outputdir = resolve( session.config.gobbledir, this.id, '' + this.counter++ );
@@ -81,7 +78,7 @@ export default class Transformer extends Node {
 							called = true;
 
 							if ( transformation.aborted ) {
-								reject( transformation.aborted );
+								reject( ABORTED );
 							}
 
 							else if ( err ) {
