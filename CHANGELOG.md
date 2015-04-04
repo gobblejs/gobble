@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.11
+
+* More robust invalidation ([#42](https://github.com/gobblejs/gobble/issues/42))
+* `inputdir` and `outputdir` are added to the error object on transformation failure
+* File watcher errors are not handled
+* Removed generated `lib/` directory from repo
+* Internal tidy up
+
 ## 0.7.10
 
 * Prevent source changes during file transformations causing transformer promise to never resolve ([#41](https://github.com/gobblejs/gobble/issues/41))
