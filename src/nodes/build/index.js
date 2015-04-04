@@ -20,14 +20,30 @@ export default function ( node, options ) {
 	let promise;
 	let previousDetails;
 
-	// that does double duty as a promise
-	task.then = function () {
-		return promise.then.apply( promise, arguments );
-	};
+	function build () {
+		task.emit( 'info', {
+			code: 'BUILD_START'
+		});
 
-	task.catch = function () {
-		return promise.catch.apply( promise, arguments );
-	};
+		node.on( 'info', details => {
+			if ( details === previousDetails ) return;
+			previousDetails = details;
+			task.emit( 'info', details );
+		});
+
+		node.start(); // TODO this starts a file watcher! need to start without watching
+
+		return node.ready().then(
+			inputdir => {
+				node.stop();
+				return copydir( inputdir ).to( dest );
+			},
+			err => {
+				node.stop();
+				throw err;
+			}
+		);
+	}
 
 	promise = cleanup( gobbledir )
 		.then( () => {
@@ -43,34 +59,26 @@ export default function ( node, options ) {
 				return cleanup( dest ).then( build );
 			}, build );
 		})
-		.then( () => {
-			task.emit( 'complete' );
-			session.destroy();
-		})
-		.catch( err => {
-			task.emit( 'error', err );
-			session.destroy();
-			throw err;
-		});
+		.then(
+			() => {
+				task.emit( 'complete' );
+				session.destroy();
+			},
+			err => {
+				session.destroy();
+				task.emit( 'error', err );
+				throw err;
+			}
+		);
+
+	// that does double duty as a promise
+	task.then = function () {
+		return promise.then.apply( promise, arguments );
+	};
+
+	task.catch = function () {
+		return promise.catch.apply( promise, arguments );
+	};
 
 	return task;
-
-	function build () {
-		task.emit( 'info', {
-			code: 'BUILD_START'
-		});
-
-		node.on( 'info', details => {
-			if ( details === previousDetails ) return;
-			previousDetails = details;
-			task.emit( 'info', details );
-		});
-
-		node.start(); // TODO this starts a file watcher! need to start without watching
-
-		return node.ready().then( inputdir => {
-			node.stop();
-			return copydir( inputdir ).to( dest );
-		});
-	}
 }

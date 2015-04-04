@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0
+
+
+
 ## 0.7.11
 
 * More robust invalidation ([#42](https://github.com/gobblejs/gobble/issues/42))

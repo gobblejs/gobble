@@ -1,7 +1,7 @@
 {
   "name": "gobble",
   "description": "The last build tool you'll ever need",
-  "version": "0.7.11",
+  "version": "0.8.0-edge",
   "author": "Rich Harris",
   "license": "MIT",
   "repository": "https://github.com/gobblejs/gobble",
