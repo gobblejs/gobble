@@ -7,72 +7,34 @@ import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
 import handleRequest from './handleRequest';
 
-export default function serve ( node, options ) {
-	var server,
-		serverReady,
-		lrServer,
-		lrServerReady,
-		built = false,
-		firedReadyEvent = false,
+export default function serve ( node, options = {} ) {
+	const port = options.port || 4567;
+	const gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble' );
+	const task = session.create({ gobbledir });
 
-		task,
-		watchTask,
+	let buildStarted = Date.now();
+	let watchTask;
+	let srcDir;
+	let server;
+	let serverReady;
+	let lrServer;
+	let lrServerReady;
+	let built = false;
+	let firedReadyEvent = false;
+	let error = { gobble: 'WAITING' };
 
-		port,
-		gobbledir,
-		error = { gobble: 'WAITING' },
-		srcDir,
-		buildStarted = Date.now();
-
-	options = options || {};
-
-	port = options.port || 4567;
-	gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble' );
-
-	task = session.create({
-		gobbledir: gobbledir
-	});
-
-	task.close = function () {
-		if ( node ) {
-			node.stop();
-		}
-
-		return new Promise( function ( fulfil ) {
-			session.destroy();
-			server.removeAllListeners();
-			server.close( fulfil );
-		});
-	};
-
-	task.pause = function () {
-		error = { gobble: 'WAITING' };
-
-		buildStarted = Date.now();
-
-		if ( node ) {
-			node.stop();
-		}
-
-		node = null;
-
-		return cleanup( gobbledir );
-	};
-
-	task.resume = function ( n ) {
+	task.resume = n => {
 		node = n;
 		watchTask = node.createWatchTask();
 
-		watchTask.on( 'info', function ( details ) {
-			task.emit( 'info', details );
-		});
+		watchTask.on( 'info', details => task.emit( 'info', details ) );
 
-		watchTask.on( 'error', function ( err ) {
+		watchTask.on( 'error', err => {
 			error = err;
 			task.emit( 'error', err );
 		});
 
-		watchTask.on( 'built', function ( d ) {
+		watchTask.on( 'built', d => {
 			error = null;
 			srcDir = d;
 
@@ -93,15 +55,41 @@ export default function serve ( node, options ) {
 		});
 	};
 
+	task.close = () => {
+		if ( node ) {
+			node.stop();
+		}
+
+		return new Promise( fulfil => {
+			session.destroy();
+			server.removeAllListeners();
+			server.close( fulfil );
+		});
+	};
+
+	task.pause = () => {
+		error = { gobble: 'WAITING' };
+
+		buildStarted = Date.now();
+
+		if ( node ) {
+			node.stop();
+		}
+
+		node = null;
+
+		return cleanup( gobbledir );
+	};
+
 	server = createServer();
 
-	server.on( 'error', function ( err ) {
+	server.on( 'error', err => {
 		if ( err.code === 'EADDRINUSE' ) {
 			// We need to create our own error, so we can pass along port info
 			err = new GobbleError({
+				port,
 				code: 'PORT_IN_USE',
-				message: 'port ' + port + ' is already in use',
-				port: port
+				message: `port ${port} is already in use`
 			});
 		}
 
@@ -110,7 +98,7 @@ export default function serve ( node, options ) {
 		process.exit( 1 );
 	});
 
-	server.listen( port, function () {
+	server.listen( port, () => {
 		serverReady = true;
 
 		if ( !firedReadyEvent && built ) {
@@ -119,19 +107,18 @@ export default function serve ( node, options ) {
 		}
 
 		task.emit( 'info', {
-			code: 'SERVER_LISTENING',
-			port: port
+			port,
+			code: 'SERVER_LISTENING'
 		});
 	});
 
-	server.on( 'request', function ( request, response ) {
-		handleRequest( srcDir, error, request, response ).catch( function ( err ) {
-			task.emit( 'error', err );
-		});
+	server.on( 'request', ( request, response ) => {
+		handleRequest( srcDir, error, request, response )
+			.catch( err => task.emit( 'error', err ) );
 	});
 
 	lrServer = tinyLr();
-	lrServer.error = function ( err ) {
+	lrServer.error = err => {
 		if ( err.code === 'EADDRINUSE' ) {
 			task.emit( 'warning', 'a livereload server is already running (perhaps in a separate gobble process?). Livereload will not be available for this session' );
 		} else {
@@ -139,7 +126,7 @@ export default function serve ( node, options ) {
 		}
 	};
 
-	lrServer.listen( 35729, function () {
+	lrServer.listen( 35729, () => {
 		lrServerReady = true;
 		task.emit( 'info', {
 			code: 'LIVERELOAD_RUNNING'
@@ -147,11 +134,10 @@ export default function serve ( node, options ) {
 	});
 
 
-	cleanup( gobbledir ).then( function () {
-		task.resume( node );
-	}, function ( err ) {
-		task.emit( 'error', err );
-	});
+	cleanup( gobbledir ).then(
+		() => task.resume( node ),
+		err => task.emit( 'error', err )
+	);
 
 	return task;
 }

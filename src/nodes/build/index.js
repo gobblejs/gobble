@@ -5,27 +5,20 @@ import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
 
 export default function ( node, options ) {
-	var dest,
-		gobbledir,
-		promise,
-		task,
-		previousDetails;
-
-	options = options || {};
-	dest = options.dest;
-	gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble-build' );
-
-	if ( !dest ) {
+	if ( !options || !options.dest ) {
 		throw new GobbleError({
 			code: 'MISSING_DEST_DIR',
 			task: 'build'
 		});
 	}
 
+	const gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble-build' );
+	const dest = options.dest;
+
 	// the return value is an EventEmitter...
-	task = session.create({
-		gobbledir: gobbledir
-	});
+	const task = session.create({ gobbledir });
+	let promise;
+	let previousDetails;
 
 	// that does double duty as a promise
 	task.then = function () {
@@ -36,29 +29,29 @@ export default function ( node, options ) {
 		return promise.catch.apply( promise, arguments );
 	};
 
+	promise = cleanup( gobbledir )
+		.then( () => {
+			return readdir( dest ).then( files => {
+				if ( files.length && !options.force ) {
+					throw new GobbleError({
+						message: `destination folder (${dest}) is not empty`,
+						code: 'DIR_NOT_EMPTY',
+						path: dest
+					});
+				}
 
-	promise = cleanup( gobbledir ).then( function () {
-		return readdir( dest ).then( function ( files ) {
-			if ( files.length && !options.force ) {
-				throw new GobbleError({
-					message: 'destination folder (' + dest + ') is not empty',
-					code: 'DIR_NOT_EMPTY',
-					path: dest
-				});
-			}
-
-			return cleanup( dest ).then( build );
-		}, build );
-	})
-	.then( function () {
-		task.emit( 'complete' );
-		session.destroy();
-	})
-	.catch( function ( err ) {
-		task.emit( 'error', err );
-		session.destroy();
-		throw err;
-	});
+				return cleanup( dest ).then( build );
+			}, build );
+		})
+		.then( () => {
+			task.emit( 'complete' );
+			session.destroy();
+		})
+		.catch( err => {
+			task.emit( 'error', err );
+			session.destroy();
+			throw err;
+		});
 
 	return task;
 
@@ -67,7 +60,7 @@ export default function ( node, options ) {
 			code: 'BUILD_START'
 		});
 
-		node.on( 'info', function ( details ) {
+		node.on( 'info', details => {
 			if ( details === previousDetails ) return;
 			previousDetails = details;
 			task.emit( 'info', details );
@@ -75,7 +68,7 @@ export default function ( node, options ) {
 
 		node.start(); // TODO this starts a file watcher! need to start without watching
 
-		return node.ready().then( function ( inputdir ) {
+		return node.ready().then( inputdir => {
 			node.stop();
 			return copydir( inputdir ).to( dest );
 		});

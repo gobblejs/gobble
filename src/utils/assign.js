@@ -1,6 +1,6 @@
 export default function assign ( target, ...sources ) {
-	sources.forEach( function ( source ) {
-		var key;
+	sources.forEach( source => {
+		let key;
 
 		for ( key in source ) {
 			if ( source.hasOwnProperty( key ) ) {

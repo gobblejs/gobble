@@ -1,4 +1,4 @@
-var i = 1;
+let i = 1;
 
 export default function uid ( postfix ) {
 	if ( process.env.GOBBLE_RESET_UID === 'reset' ) {

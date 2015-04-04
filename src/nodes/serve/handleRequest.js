@@ -6,14 +6,14 @@ import serveDir from './serveDir';
 import serveError from './serveError';
 
 export default function handleRequest ( srcDir, error, request, response ) {
-	var message,
-		parsedUrl = parse( request.url ),
-		pathname = parsedUrl.pathname,
-		filepath;
+	const parsedUrl = parse( request.url );
+	const pathname = parsedUrl.pathname;
+
+	let filepath;
 
 	if ( error ) {
 		if ( pathname.substr( 0, 11 ) === '/__gobble__' ) {
-			message = ( error.original && error.original.message ) || error.message || '';
+			const message = ( error.original && error.original.message ) || error.message || '';
 			filepath = pathname.substring( 11 );
 
 			// only allow links to files that we're actually interested in, not
@@ -29,7 +29,7 @@ export default function handleRequest ( srcDir, error, request, response ) {
 
 	filepath = join( srcDir, pathname );
 
-	return stat( filepath ).then( function ( stats ) {
+	return stat( filepath ).then( stats => {
 		if ( stats.isDirectory() ) {
 			// might need to redirect from `foo` to `foo/`
 			if ( pathname.slice( -1 ) !== '/' ) {
@@ -45,7 +45,5 @@ export default function handleRequest ( srcDir, error, request, response ) {
 		else {
 			return serveFile( filepath, request, response );
 		}
-	}, function ( err ) {
-		return serveError( err, request, response );
-	});
+	}, err => serveError( err, request, response ) );
 }

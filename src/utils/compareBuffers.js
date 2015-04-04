@@ -1,5 +1,5 @@
 export default function compareBuffers ( a, b ) {
-	var i = a.length;
+	let i = a.length;
 
 	if ( b.length !== i ) {
 		return false;

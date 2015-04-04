@@ -24,6 +24,8 @@ const colors = {
 };
 
 export default function serveError ( error, request, response ) {
+	let html; // should be a block-scoped const, but jshint...
+
 	if ( error.gobble === 'WAITING' ) {
 		response.statusCode = 420;
 		response.write( waitingTemplate() );
@@ -32,7 +34,7 @@ export default function serveError ( error, request, response ) {
 	}
 
 	else if ( error.code === 'ENOENT' ) {
-		let html = notfoundTemplate({
+		html = notfoundTemplate({
 			path: error.path
 		});
 
@@ -43,32 +45,31 @@ export default function serveError ( error, request, response ) {
 	}
 
 	else {
-		let id = error.id;
-		let message = escape( error.original ? error.original.message || error.original : error );
-		let filename = error.original ? error.original.filename : error.filename;
+		const message = escape( error.original ? error.original.message || error.original : error );
+		const filename = error.original ? error.original.filename : error.filename;
 
-		let html = errTemplate({
-			id: id,
-			message: message.replace( /\[(\d+)m/g, function ( match, $1 ) {
-				var color;
+		html = errTemplate({
+			id: error.id,
+			message: message.replace( /\[(\d+)m/g, ( match, $1 ) => {
+				let color;
 
 				if ( match === '[39m' ) {
 					return '</span>';
 				}
 
 				if ( color = colors[ $1 ] ) {
-					return '<span style="color:' + color + ';">';
+					return `<span style="color:${color};">`;
 				}
 
 				return '';
 			}), // remove colors
 			stack: prepareStack( error.stack ),
-			filemessage: filename ? '<p>The error occurred while processing <strong>' + filename + '</strong>.</p>' : ''
+			filemessage: filename ? `<p>The error occurred while processing <strong>${filename}</strong>.</p>` : ''
 		});
 
 		// turn filepaths into links
-		html = html.replace( /([>\s\(])(&#x2F[^\s\):<]+)/g, function ( match, $1, $2 ) {
-			return $1 + '<a href="/__gobble__' + $2 + '">' + $2 + '</a>';
+		html = html.replace( /([>\s\(])(&#x2F[^\s\):<]+)/g, ( match, $1, $2 ) => {
+			return `${$1}<a href="/__gobble__${$2}">${$2}</a>`;
 		});
 
 		response.statusCode = 500;
@@ -79,15 +80,12 @@ export default function serveError ( error, request, response ) {
 }
 
 function prepareStack ( stack ) {
-	return stack.split( '\n' ).filter( function ( line ) {
-		return line !== 'Error';
-	}).map( function ( line ) {
-		return '<li>' + escape( line.trim() ) + '</li>';
-	}).join( '' );
+	return stack.split( '\n' )
+		.filter( line => line !== 'Error' )
+		.map( line => `<li>${escape( line.trim() )}</li>` )
+		.join( '' );
 }
 
 function escape ( str ) {
-	return ( str || '' ).replace( /[&<>"'\/]/g, function ( char ) {
-		return entities[ char ];
-	});
+	return ( str || '' ).replace( /[&<>"'\/]/g, char => entities[ char ] );
 }

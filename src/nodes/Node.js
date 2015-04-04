@@ -38,17 +38,20 @@ export default class Node extends EventEmitter2 {
 	}
 
 	createWatchTask () {
-		var node = this, watchTask, buildScheduled, previousDetails;
-
-		watchTask = new EventEmitter2({ wildcard: true });
+		const node = this;
+		const watchTask = new EventEmitter2({ wildcard: true });
 
 		// TODO is this the best place to handle this stuff? or is it better
 		// to pass off the info to e.g. gobble-cli?
+		let previousDetails;
+
 		node.on( 'info', details => {
 			if ( details === previousDetails ) return;
 			previousDetails = details;
 			watchTask.emit( 'info', details );
 		});
+
+		let buildScheduled;
 
 		node.on( 'invalidate', changes => {
 			// A node can depend on the same source twice, which will result in
@@ -56,8 +59,8 @@ export default class Node extends EventEmitter2 {
 			if ( !buildScheduled ) {
 				buildScheduled = true;
 				watchTask.emit( 'info', {
-					code: 'BUILD_INVALIDATED',
-					changes: changes
+					changes,
+					code: 'BUILD_INVALIDATED'
 				});
 
 				process.nextTick( build );
@@ -67,7 +70,7 @@ export default class Node extends EventEmitter2 {
 		node.on( 'error', handleError );
 
 		function build () {
-			var buildStart = Date.now();
+			const buildStart = Date.now();
 
 			buildScheduled = false;
 
@@ -92,9 +95,7 @@ export default class Node extends EventEmitter2 {
 			}
 		}
 
-		watchTask.close = function () {
-			node.stop();
-		};
+		watchTask.close = () => node.stop();
 
 		this.start();
 		build();
@@ -108,7 +109,7 @@ export default class Node extends EventEmitter2 {
 	}
 
 	grab () {
-		var src = join.apply( null, arguments );
+		const src = join.apply( null, arguments );
 		return new Transformer( this, grab, { src });
 	}
 
@@ -135,8 +136,8 @@ export default class Node extends EventEmitter2 {
 	}
 
 	moveTo () {
-		var dest = join.apply( null, arguments );
-		return new Transformer( this, move, { dest: dest });
+		const dest = join.apply( null, arguments );
+		return new Transformer( this, move, { dest });
 	}
 
 	serve ( options ) {
@@ -144,18 +145,15 @@ export default class Node extends EventEmitter2 {
 	}
 
 	transform ( fn, userOptions ) {
-		var options;
-
 		if ( typeof fn === 'string' ) {
 			fn = tryToLoad( fn );
 		}
 
 		// If function takes fewer than 3 arguments, it's a file transformer
 		if ( fn.length < 3 ) {
-
-			options = assign({}, fn.defaults, userOptions, {
+			const options = assign( {}, fn.defaults, userOptions, {
+				fn,
 				cache: {},
-				fn: fn,
 				userOptions: assign( {}, userOptions )
 			});
 
@@ -176,19 +174,15 @@ export default class Node extends EventEmitter2 {
 }
 
 function tryToLoad ( plugin ) {
-	var gobbleError;
-
 	try {
 		return requireRelative( `gobble-${plugin}`, process.cwd() );
 	} catch ( err ) {
 		if ( err.message === `Cannot find module 'gobble-${plugin}'` ) {
-			gobbleError = new GobbleError({
+			throw new GobbleError({
 				message: `Could not load gobble-${plugin} plugin`,
 				code: 'PLUGIN_NOT_FOUND',
 				plugin: plugin
 			});
-
-			throw gobbleError;
 		} else {
 			throw err;
 		}

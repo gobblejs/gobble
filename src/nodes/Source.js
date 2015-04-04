@@ -17,7 +17,7 @@ export default class Source extends Node {
 
 		// Ensure the source exists, and is a directory
 		try {
-			let stats = statSync( this.dir );
+			const stats = statSync( this.dir );
 
 			if ( !stats.isDirectory() ) {
 				this.file = dir;
@@ -51,8 +51,6 @@ export default class Source extends Node {
 	}
 
 	start () {
-		var relay, options, watchError, changes = [];
-
 		if ( this._active || this.static ) {
 			return;
 		}
@@ -69,9 +67,11 @@ export default class Source extends Node {
 			linkSync( this.file ).to( this.targetFile );
 		}
 
-		relay = debounce( () => {
+		let changes = [];
+
+		const relay = debounce( () => {
 			this.changes = changes.map( change => {
-				let result = {
+				const result = {
 					file: relative( this.dir, change.path )
 				};
 
@@ -86,7 +86,7 @@ export default class Source extends Node {
 			changes = [];
 		}, 100 );
 
-		options = {
+		const options = {
 			persistent: true,
 			ignoreInitial: true,
 			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
@@ -107,8 +107,6 @@ export default class Source extends Node {
 			this._fileWatcher.on( 'change', () => {
 				link( this.file ).to( this.targetFile );
 			});
-
-			this._fileWatcher.on( 'error', watchError );
 		}
 	}
 

@@ -1,9 +1,11 @@
 export default function summariseChanges ( changes ) {
-	var summary = {
+	let summary = {
 		add: 0,
 		unlink: 0,
 		change: 0
-	}, report = [];
+	};
+
+	let report = [];
 
 	changes.forEach( function ( change ) {
 		summary[ change.type ] += 1;

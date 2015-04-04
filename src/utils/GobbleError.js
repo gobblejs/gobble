@@ -1,4 +1,4 @@
-var GobbleError = function ( data ) {
+function GobbleError ( data ) {
 	var prop;
 
 	this.stack = (new Error()).stack;
@@ -8,7 +8,7 @@ var GobbleError = function ( data ) {
 			this[ prop ] = data[ prop ];
 		}
 	}
-};
+}
 
 GobbleError.prototype = Object.create( Error.prototype );
 GobbleError.prototype.constructor = GobbleError;

@@ -16,10 +16,12 @@ export default class Merger extends Node {
 	}
 
 	ready () {
-		var aborted, index, outputdir;
+		let aborted;
+		let index;
+		let outputdir;
 
 		if ( !this._ready ) {
-			this._abort = ( changes ) => {
+			this._abort = () => {
 				// allows us to short-circuit operations at various points
 				aborted = true;
 				this._ready = null;
@@ -29,14 +31,12 @@ export default class Merger extends Node {
 			outputdir = resolve( session.config.gobbledir, this.id, '' + index );
 
 			this._ready = mkdir( outputdir ).then( () => {
-				var start, inputdirs = [];
+				let start;
+				let inputdirs = [];
 
 				return mapSeries( this.inputs, function ( input, i ) {
 					if ( aborted ) throw ABORTED;
-
-					return input.ready().then( function ( inputdir ) {
-						inputdirs[i] = inputdir;
-					});
+					return input.ready().then( inputdir => inputdirs[i] = inputdir );
 				}).then( () => {
 					start = Date.now();
 
@@ -70,10 +70,7 @@ export default class Merger extends Node {
 	}
 
 	start () {
-		if ( this._active ) {
-			return;
-		}
-
+		if ( this._active ) return;
 		this._active = true;
 
 		this._oninvalidate = changes => {
@@ -81,9 +78,7 @@ export default class Merger extends Node {
 			this.emit( 'invalidate', changes );
 		};
 
-		this._oninfo = details => {
-			this.emit( 'info', details );
-		};
+		this._oninfo = details => this.emit( 'info', details );
 
 		this.inputs.forEach( input => {
 			input.on( 'invalidate', this._oninvalidate );
@@ -105,7 +100,7 @@ export default class Merger extends Node {
 	}
 
 	_cleanup ( index ) {
-		var dir = join( session.config.gobbledir, this.id );
+		const dir = join( session.config.gobbledir, this.id );
 
 		// Remove everything except the last successful output dir.
 		// Use readdirSync to eliminate race conditions
@@ -115,7 +110,9 @@ export default class Merger extends Node {
 	}
 
 	_findCreator ( filename ) {
-		var i = this.inputs.length, node;
+		let i = this.inputs.length;
+		let node;
+
 		while ( i-- ) {
 			node = this.inputs[i];
 			if ( node._findCreator( filename ) ) {

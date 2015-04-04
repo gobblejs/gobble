@@ -4,7 +4,7 @@ import { Merger, Source } from '../nodes';
 import config from '../config';
 import { isArray, isString } from './is';
 
-var sources = {};
+let sources = {};
 
 export default getNode;
 
@@ -25,9 +25,9 @@ function getNode ( input, options ) {
 
 	throw new Error( `could not process input. Usage:
     node2 = gobble(node1)
-    node = gobble(\'some/dir\')
+    node = gobble('some/dir')
     node = gobble([node1, node2[, nodeN]) (inputs can also be strings)
-    See ` + cyan( 'https://github.com/gobblejs/gobble/wiki' ) + ' for more info.' );
+    See ${cyan( 'https://github.com/gobblejs/gobble/wiki' )} for more info.` );
 }
 
 function ensureNode ( input ) {

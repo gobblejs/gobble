@@ -1,10 +1,10 @@
 /*global console */
 import { format } from 'util';
 
-var alreadyWarned = {};
+let alreadyWarned = {};
 
 export default function warnOnce () {
-	var warning = format.apply( null, arguments );
+	const warning = format.apply( null, arguments );
 
 	if ( !alreadyWarned[ warning ] ) {
 		console.log( warning );

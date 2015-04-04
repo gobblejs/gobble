@@ -20,24 +20,21 @@ export default function map ( inputdir, outputdir, options ) {
 	});
 
 	return new Promise( ( fulfil, reject ) => {
-		var queue = new Queue();
+		const queue = new Queue();
 
 		queue.once( 'error', reject );
 
 		lsr( inputdir ).then( files => {
-			var promises = files.map( filename => {
-				var ext = extname( filename ),
-					src,
-					dest,
-					destname;
-
+			const promises = files.map( filename => {
 				if ( this.aborted ) return;
 
-				// change extension if necessary, e.g. foo.coffee -> foo.js
-				destname = ( options.ext && ~options.accept.indexOf( ext ) ) ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
+				const ext = extname( filename );
 
-				src = join( inputdir, filename );
-				dest = join( outputdir, destname );
+				// change extension if necessary, e.g. foo.coffee -> foo.js
+				const destname = ( options.ext && ~options.accept.indexOf( ext ) ) ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
+
+				const src = join( inputdir, filename );
+				const dest = join( outputdir, destname );
 
 				// If this mapper only accepts certain extensions, and this isn't
 				// one of them, just copy the file
@@ -58,44 +55,49 @@ export default function map ( inputdir, outputdir, options ) {
 					}
 
 					// Create context object - this will be passed to transformers
-					let context = {
+					const context = {
 						log: this.log,
 						env: config.env,
 						src, dest, filename
 					};
 
-					let transformOptions = assign( {}, options.fn.defaults, options.userOptions );
+					const transformOptions = assign( {}, options.fn.defaults, options.userOptions );
 
 					delete transformOptions.accept;
 					delete transformOptions.ext;
 
-					return readFile( src ).then( buffer => buffer.toString( transformOptions.sourceEncoding ) ).then( data => {
-						var result, code, map, mappath;
+					return readFile( src )
+						.then( buffer => buffer.toString( transformOptions.sourceEncoding ) )
+						.then( data => {
+							if ( this.aborted ) return reject( ABORTED );
 
-						if ( this.aborted ) return reject( ABORTED );
+							let result;
 
-						try {
-							result = options.fn.call( context, data, transformOptions );
-						} catch ( e ) {
-							let err = createTransformError( e, src, filename, this.node );
-							return reject( err );
-						}
+							try {
+								result = options.fn.call( context, data, transformOptions );
+							} catch ( e ) {
+								let err = createTransformError( e, src, filename, this.node );
+								return reject( err );
+							}
 
-						let codepath = resolve( this.cachedir, filename );
+							const codepath = resolve( this.cachedir, filename );
+							let code;
+							let map;
+							let mappath;
 
-						if ( typeof result === 'object' && result.code ) {
-							code = result.code;
-							map = processSourcemap( result.map, src, dest, data );
-							mappath = `${codepath}.${this.node.id}.map`;
-						} else {
-							code = result;
-						}
+							if ( typeof result === 'object' && result.code ) {
+								code = result.code;
+								map = processSourcemap( result.map, src, dest, data );
+								mappath = `${codepath}.${this.node.id}.map`;
+							} else {
+								code = result;
+							}
 
-						writeTransformedResult( this.node, code, map, codepath, mappath, dest )
-							.then( () => options.cache[ filename ] = { codepath, mappath } )
-							.then( fulfil )
-							.catch( reject );
-					});
+							writeTransformedResult( this.node, code, map, codepath, mappath, dest )
+								.then( () => options.cache[ filename ] = { codepath, mappath } )
+								.then( fulfil )
+								.catch( reject );
+						});
 				}).catch( err => {
 					queue.abort();
 					throw err;
@@ -122,16 +124,18 @@ function useCachedTransformation ( node, cached, dest ) {
 	// What if sourcemaps had their own parallel situation? What
 	// if the sourcemap itself has changed? Need to investigate
 	// when I'm less pressed for time)
-	return readFile( cached.codepath ).then( String ).then( code => {
-		// remove any existing sourcemap comment
-		code = code.replace( SOURCEMAP_COMMENT, '' ) +
-			`\n//# sourceMappingURL=${dest}.${node.id}.map`;
+	return readFile( cached.codepath )
+		.then( String )
+		.then( code => {
+			// remove any existing sourcemap comment
+			code = code.replace( SOURCEMAP_COMMENT, '' ) +
+				`\n//# sourceMappingURL=${dest}.${node.id}.map`;
 
-		return Promise.all([
-			writeFile( dest, code ),
-			link( cached.mappath ).to( `${dest}.${node.id}.map` )
-		]);
-	});
+			return Promise.all([
+				writeFile( dest, code ),
+				link( cached.mappath ).to( `${dest}.${node.id}.map` )
+			]);
+		});
 }
 
 function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
@@ -145,31 +149,30 @@ function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
 
 	return Promise.all([
 		writeCode(),
-		writeFile( mappath, map ).then( () => {
-			return linkFile( mappath ).to( `${dest}.${node.id}.map` );
-		})
+		writeFile( mappath, map ).then( () =>
+			linkFile( mappath ).to( `${dest}.${node.id}.map` )
+		)
 	]);
 
 	function writeCode () {
-		return writeFile( codepath, code ).then( () => {
+		return writeFile( codepath, code ).then( () =>
 			// TODO use sander.link?
-			return linkFile( codepath ).to( dest );
-		});
+			linkFile( codepath ).to( dest )
+		);
 	}
 }
 
 function createTransformError ( original, src, filename, node ) {
-	let err = typeof original === 'string' ? new Error( original ) : original;
+	const err = typeof original === 'string' ? new Error( original ) : original;
 
 	let message = 'An error occurred while processing ' + chalk.magenta( src );
-
 	let creator;
 
 	if ( creator = node.input._findCreator( filename ) ) {
 		message += ` (this file was created by the ${creator.id} transformation)`;
 	}
 
-	let { line, column } = extractLocationInfo( err );
+	const { line, column } = extractLocationInfo( err );
 
 	err.file = src;
 	err.line = line;
@@ -194,11 +197,13 @@ function processSourcemap ( map, src, dest, data ) {
 }
 
 function shouldSkip ( options, ext, filename ) {
-	var filter, i, flt;
+	let filter;
 
 	if ( filter = options.accept ) {
+		let i;
+
 		for ( i=0; i<filter.length; i++ ) {
-			flt = filter[i];
+			const flt = filter[i];
 
 			if ( typeof flt === 'string' && flt === ext ) {
 				return false;

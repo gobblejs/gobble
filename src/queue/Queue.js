@@ -10,7 +10,7 @@ export default class Queue extends EventEmitter2 {
 		queue._tasks = [];
 
 		queue._run = () => {
-			var task = queue._tasks.shift();
+			const task = queue._tasks.shift();
 
 			if ( !task ) {
 				queue._running = false;
@@ -35,9 +35,9 @@ export default class Queue extends EventEmitter2 {
 	}
 
 	add ( fn ) {
-		var task, promise;
+		let task;
 
-		promise = new Promise( ( fulfil, reject ) => {
+		const promise = new Promise( ( fulfil, reject ) => {
 			task = { fn, fulfil, reject };
 		});
 

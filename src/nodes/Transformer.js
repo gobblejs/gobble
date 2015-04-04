@@ -31,15 +31,14 @@ export default class Transformer extends Node {
 			warnOnce( 'The gobble plugin API has changed - the "%s" transformer should take a single callback. See https://github.com/gobblejs/gobble/wiki/Troubleshooting for more info', this.name );
 
 			this.transformer = ( inputdir, outputdir, options, callback ) => {
-				return transformer.call( this, inputdir, outputdir, options, function () {
-					callback();
-				}, callback );
+				return transformer.call( this, inputdir, outputdir, options, () => callback(), callback );
 			};
 		}
 	}
 
 	ready () {
-		var outputdir, transformation;
+		let outputdir;
+		let transformation;
 
 		if ( !this._ready ) {
 			transformation = {
@@ -50,7 +49,7 @@ export default class Transformer extends Node {
 				sander: sander
 			};
 
-			this._abort = ( changes ) => {
+			this._abort = () => {
 				this._ready = null;
 				transformation.aborted = true;
 			};
@@ -60,21 +59,17 @@ export default class Transformer extends Node {
 			this._ready = this.input.ready().then( inputdir => {
 				return mkdir( outputdir ).then( () => {
 					return queue.add( ( fulfil, reject ) => {
-						var promise, called, callback, start;
-
 						this.emit( 'info', {
 							code: 'TRANSFORM_START',
 							progressIndicator: true,
 							id: this.id
 						});
 
-						start = Date.now();
+						const start = Date.now();
+						let called = false;
 
-						callback = err => {
-							if ( called ) {
-								return;
-							}
-
+						const callback = err => {
+							if ( called ) return;
 							called = true;
 
 							if ( transformation.aborted ) {
@@ -86,12 +81,12 @@ export default class Transformer extends Node {
 								let { file, line, column } = extractLocationInfo( err );
 
 								let gobbleError = new GobbleError({
-									message: 'transformation failed',
 									inputdir, outputdir,
+									stack, file, line, column,
+									message: 'transformation failed',
 									id: this.id,
 									code: 'TRANSFORMATION_FAILED',
-									original: err,
-									stack, file, line, column
+									original: err
 								});
 
 								reject( gobbleError );
@@ -112,7 +107,7 @@ export default class Transformer extends Node {
 						try {
 							transformation.changes = this.input.changes || this.getChanges( inputdir );
 
-							promise = this.transformer.call( transformation, inputdir, outputdir, assign({}, this.options ), callback );
+							const promise = this.transformer.call( transformation, inputdir, outputdir, assign({}, this.options ), callback );
 
 							if ( promise && typeof promise.then === 'function' ) {
 								promise.then( () => callback(), callback );
@@ -135,15 +130,13 @@ export default class Transformer extends Node {
 
 		this._active = true;
 
-		// Propagate errors and information
+		// Propagate invalidation events and information
 		this._oninvalidate = changes => {
-			this._abort( changes );
+			this._abort();
 			this.emit( 'invalidate', changes );
 		};
 
-		this._oninfo = details => {
-			this.emit( 'info', details );
-		};
+		this._oninfo = details => this.emit( 'info', details );
 
 		this.input.on( 'invalidate', this._oninvalidate );
 		this.input.on( 'info', this._oninfo );
@@ -160,7 +153,7 @@ export default class Transformer extends Node {
 	}
 
 	getChanges ( inputdir ) {
-		let files = lsrSync( inputdir );
+		const files = lsrSync( inputdir );
 
 		if ( !this._files ) {
 			this._files = files;
@@ -173,10 +166,10 @@ export default class Transformer extends Node {
 			return files.map( file => ({ file, added: true }) );
 		}
 
-		let added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
-		let removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
+		const added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
+		const removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
 
-		let maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
+		const maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
 
 		let changed = [];
 
@@ -192,7 +185,7 @@ export default class Transformer extends Node {
 	}
 
 	_cleanup ( latest ) {
-		let dir = join( session.config.gobbledir, this.id );
+		const dir = join( session.config.gobbledir, this.id );
 
 		// Remove everything except the last successful outputdir and the cachedir
 		// Use readdirSync to eliminate race conditions

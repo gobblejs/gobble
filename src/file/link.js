@@ -3,15 +3,13 @@ import { mkdir } from 'sander';
 import { sync as symlinkOrCopy } from 'symlink-or-copy';
 
 export default function () {
-	var src = resolve.apply( null, arguments );
+	const src = resolve.apply( null, arguments );
 
 	return {
-		to: function () {
-			var dest = resolve.apply( null, arguments );
+		to () {
+			const dest = resolve.apply( null, arguments );
 
-			return mkdir( dirname( dest ) ).then( function () {
-				symlinkOrCopy( src, dest );
-			});
+			return mkdir( dirname( dest ) ).then( () =>	symlinkOrCopy( src, dest ) );
 		}
 	};
 }

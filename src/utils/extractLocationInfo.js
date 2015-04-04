@@ -1,23 +1,19 @@
-export default function extractLocationInfo ( err ) {
-	var file, line, column, match;
-
-	if ( err.file !== undefined ) file = err.file;
-	if ( err.line !== undefined ) line = err.line;
-	if ( err.column !== undefined ) column = err.column;
-
-	if ( err.line === undefined && err.column === undefined && err.loc ) {
-		line = err.loc.line;
-		column = err.loc.column;
+export default function extractLocationInfo ({ file, line, column, message, loc }) {
+	if ( line === undefined && column === undefined && loc ) {
+		line = loc.line;
+		column = loc.column;
 	}
 
+	let match;
+
 	if ( line === undefined ) {
-		if ( match = /line (\d+)/.exec( err.message ) ) {
+		if ( match = /line (\d+)/.exec( message ) ) {
 			line = +match[1];
 		}
 	}
 
 	if ( column === undefined ) {
-		if ( match = /column (\d+)/.exec( err.message ) ) {
+		if ( match = /column (\d+)/.exec( message ) ) {
 			column = +match[1];
 		}
 	}

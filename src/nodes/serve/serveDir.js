@@ -5,31 +5,27 @@ import { exists, readdir } from 'sander';
 import serveFile from './serveFile';
 import dirTemplate from './templates/dir';
 
-export default function serveDir( filepath, request, response ) {
-	var index = resolve( filepath, 'index.html' );
+export default function serveDir ( filepath, request, response ) {
+	const index = resolve( filepath, 'index.html' );
 
-	return exists( index ).then( function ( exists ) {
+	return exists( index ).then( exists => {
 		if ( exists ) {
 			return serveFile( index, request, response );
 		}
 
-		return readdir( filepath ).then( function ( files ) {
-			var items;
-
-			items = files.map( function ( filename ) {
-				var stats, isDir;
-
-				stats = statSync( resolve( filepath, filename ) );
-				isDir = stats.isDirectory();
+		return readdir( filepath ).then( files => {
+			let items = files.map( href => {
+				const stats = statSync( resolve( filepath, href ) );
+				const isDir = stats.isDirectory();
 
 				return {
-					href: filename,
-					isDir: isDir,
-					type: isDir ? 'dir' : extname( filename )
+					isDir,
+					href,
+					type: isDir ? 'dir' : extname( href )
 				};
 			});
 
-			items.sort( function ( a, b ) {
+			items.sort( ( a, b ) => {
 				if ( ( a.isDir && b.isDir ) || ( !a.isDir && !b.isDir ) ) {
 					return a.href < b.href ? 1 : -1;
 				}
@@ -37,11 +33,11 @@ export default function serveDir( filepath, request, response ) {
 				return a.isDir ? -1 : 1;
 			});
 
-			var html = dirTemplate({
+			const html = dirTemplate({
 				url: request.url,
-				items: items.map( function ( item ) {
-					return '<li class="' + item.type + '"><a href="' + item.href + '">' + item.href + '</a></li>';
-				}).join( '' )
+				items: items
+					.map( item => `<li class="${item.type}"><a href="${item.href}">${item.href}</a></li>` )
+					.join( '' )
 			});
 
 			response.statusCode = 200;

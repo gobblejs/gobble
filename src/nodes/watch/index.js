@@ -4,11 +4,6 @@ import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
 
 export default function watch ( node, options ) {
-	var dest,
-		gobbledir,
-		watchTask,
-		task;
-
 	if ( !options || !options.dest ) {
 		throw new GobbleError({
 			code: 'MISSING_DEST_DIR',
@@ -16,21 +11,36 @@ export default function watch ( node, options ) {
 		});
 	}
 
-	dest = options.dest;
-	gobbledir = require( 'path' ).resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble-watch' );
+	const gobbledir = require( 'path' ).resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble-watch' );
+	const task = session.create({ gobbledir });
 
-	task = session.create({
-		gobbledir: gobbledir
-	});
+	let watchTask;
 
-	task.close = function () {
+	task.resume = n => {
+		node = n;
+		watchTask = node.createWatchTask();
+
+		watchTask.on( 'info', details => task.emit( 'info', details ) );
+		watchTask.on( 'error', err => task.emit( 'error', err ) );
+
+		watchTask.on( 'built', outputdir => {
+			const dest = options.dest;
+
+			rimraf( dest )
+				.then( () => copydir( outputdir ).to( dest ) )
+				.then( () => task.emit( 'built', dest ) )
+				.catch( err => task.emit( 'error', err ) );
+		});
+	};
+
+	task.close = () => {
 		watchTask.close();
 		session.destroy();
 
 		return Promise.resolve(); // for consistency with serve task
 	};
 
-	task.pause = function () {
+	task.pause = () => {
 		if ( watchTask ) {
 			watchTask.close();
 		}
@@ -39,34 +49,10 @@ export default function watch ( node, options ) {
 		return cleanup( gobbledir );
 	};
 
-	task.resume = function ( n ) {
-		node = n;
-		watchTask = node.createWatchTask();
-
-		watchTask.on( 'info', function ( details ) {
-			task.emit( 'info', details );
-		});
-
-		watchTask.on( 'error', function ( err ) {
-			task.emit( 'error', err );
-		});
-
-		watchTask.on( 'built', function ( d ) {
-			rimraf( dest ).then( function () {
-				return copydir( d ).to( dest ).then( function () {
-					task.emit( 'built', dest );
-				});
-			}).catch( function ( err ) {
-				task.emit( 'error', err );
-			});
-		});
-	};
-
-	cleanup( gobbledir ).then( function () {
-		task.resume( node );
-	}, function ( err ) {
-		task.emit( 'error', err );
-	});
+	cleanup( gobbledir ).then(
+		() => task.resume( node ),
+		err => task.emit( 'error', err )
+	);
 
 	return task;
 }
