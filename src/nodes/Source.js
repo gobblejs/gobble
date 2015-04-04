@@ -101,19 +101,6 @@ export default class Source extends Node {
 			});
 		});
 
-		// TODO
-		/*watchError = err => {
-			var gobbleError = new GobbleError({
-				message: 'error watching ' + this.dir + ': ' + err.message,
-				code: 'SOURCE_ERROR',
-				original: err
-			});
-
-			this.emit( 'error', gobbleError );
-		};
-
-		this._watcher.on( 'error', watchError );*/
-
 		if ( this.file ) {
 			this._fileWatcher = watch( this.file, options );
 
