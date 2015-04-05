@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.12
+
+* Inline sourcemaps from file transformers are fixed ([#45](https://github.com/gobblejs/gobble/issues/45))
+
 ## 0.7.11
 
 * More robust invalidation ([#42](https://github.com/gobblejs/gobble/issues/42))
