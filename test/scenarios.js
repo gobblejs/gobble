@@ -435,6 +435,22 @@ module.exports = function () {
 			});
 		});
 
+		it( 'allows file transformer result to be an object with `code` but no `map`', function () {
+			var source = gobble( 'tmp/foo' );
+
+			return source.transform( function ( input ) {
+				return { code: input };
+			}).build({
+				dest: 'tmp/output'
+			}).then( function () {
+				return sander.readFile( 'tmp/output/foo.md' )
+					.then( String )
+					.then( function ( body ) {
+						assert.equal( body, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+					});
+			});
+		});
+
 		it( 'should not make a file transform without a sourcemap sprout an invalid one', function ( done ) {
 			sander.writeFileSync( 'tmp/dynamic/baz', 'step1' );
 			var source = gobble( 'tmp/dynamic' );

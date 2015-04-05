@@ -116,7 +116,7 @@ function processResult ( result, original, src, dest ) {
 
 		// otherwise we might have an inline sourcemap
 		else {
-			return processInlineSourceMap( result, src, dest, original );
+			return processInlineSourceMap( result.code, src, dest, original );
 		}
 	}
 
