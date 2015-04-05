@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.13
+
+* Fix regression introduced in 0.7.12
+
 ## 0.7.12
 
 * Inline sourcemaps from file transformers are fixed ([#45](https://github.com/gobblejs/gobble/issues/45))
