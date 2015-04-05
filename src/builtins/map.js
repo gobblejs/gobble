@@ -141,7 +141,7 @@ function processInlineSourceMap ( code, src, dest, original ) {
 		let json = atob( match[1] );
 
 		const map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, '//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + btoa( map ) );
+		code = code.replace( SOURCEMAP_COMMENT, '//# sourceMa' + 'ppingURL=data:application/json;charset=utf-8;base64,' + btoa( map ) );
 	}
 
 	return { code, map: null };
@@ -164,7 +164,7 @@ function useCachedTransformation ( node, cached, dest ) {
 		.then( code => {
 			// remove any existing sourcemap comment
 			code = code.replace( SOURCEMAP_COMMENT, '' ) +
-				`\n//# sourceMappingURL=${dest}.${node.id}.map`;
+				`\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
 
 			return Promise.all([
 				writeFile( dest, code ),
@@ -180,7 +180,7 @@ function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
 
 	// remove any existing sourcemap comment
 	code = code.replace( SOURCEMAP_COMMENT, '' );
-	code += `\n//# sourceMappingURL=${dest}.${node.id}.map`;
+	code += `\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
 
 	return Promise.all([
 		writeCode(),
