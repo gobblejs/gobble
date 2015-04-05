@@ -412,6 +412,29 @@ module.exports = function () {
 			});
 		});
 
+		it( 'fixes inline sourcemaps (#45)', function () {
+			var source = gobble( 'tmp/foo' );
+
+			return source.transform( function ( input ) {
+				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,e30='; // e30= is {}
+			}).build({
+				dest: 'tmp/output'
+			}).then( function () {
+				return sander.readFile( 'tmp/output/foo.md' )
+					.then( String )
+					.then( function ( body ) {
+						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
+						var base64 = /base64,(.+)/.exec( sourceMappingURL )[1];
+						var json = new Buffer( base64, 'base64' ).toString();
+						var map = JSON.parse( json );
+
+						assert.ok( /foo\.md$/.test( map.file ) );
+						assert.deepEqual( map.sources, [ path.resolve( 'tmp/foo/foo.md' ) ] );
+						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+					});
+			});
+		});
+
 		it( 'should not make a file transform without a sourcemap sprout an invalid one', function ( done ) {
 			sander.writeFileSync( 'tmp/dynamic/baz', 'step1' );
 			var source = gobble( 'tmp/dynamic' );
