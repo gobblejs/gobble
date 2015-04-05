@@ -15,6 +15,7 @@
 ## 0.7.10
 
 * Prevent source changes during file transformations causing transformer promise to never resolve ([#41](https://github.com/gobblejs/gobble/issues/41))
+* File transforms can specify their encoding with the `sourceEncoding` option ([#40](https://github.com/gobblejs/gobble/pull/40))
 
 ## 0.7.9
 
