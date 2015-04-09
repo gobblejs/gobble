@@ -9,6 +9,10 @@ var Promise = sander.Promise;
 
 gobble.cwd( __dirname );
 
+function identity ( input ) {
+	return input;
+}
+
 module.exports = function () {
 	var task;
 
@@ -414,6 +418,45 @@ module.exports = function () {
 			});
 		});
 
+		it( 'fixes inline sourcemaps (#45)', function () {
+			var source = gobble( 'tmp/foo' );
+
+			return source.transform( function ( input ) {
+				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,e30='; // e30= is {}
+			}).build({
+				dest: 'tmp/output'
+			}).then( function () {
+				return sander.readFile( 'tmp/output/foo.md' )
+					.then( String )
+					.then( function ( body ) {
+						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
+						var base64 = /base64,(.+)/.exec( sourceMappingURL )[1];
+						var json = new Buffer( base64, 'base64' ).toString();
+						var map = JSON.parse( json );
+
+						assert.ok( /foo\.md$/.test( map.file ) );
+						assert.deepEqual( map.sources, [ path.resolve( 'tmp/foo/foo.md' ) ] );
+						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+					});
+			});
+		});
+
+		it( 'allows file transformer result to be an object with `code` but no `map`', function () {
+			var source = gobble( 'tmp/foo' );
+
+			return source.transform( function ( input ) {
+				return { code: input };
+			}).build({
+				dest: 'tmp/output'
+			}).then( function () {
+				return sander.readFile( 'tmp/output/foo.md' )
+					.then( String )
+					.then( function ( body ) {
+						assert.equal( body, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+					});
+			});
+		});
+
 		it( 'should not make a file transform without a sourcemap sprout an invalid one', function ( done ) {
 			sander.writeFileSync( 'tmp/dynamic/baz', 'step1' );
 			var source = gobble( 'tmp/dynamic' );
@@ -557,6 +600,27 @@ module.exports = function () {
 			});
 		});
 
+		it( 'does not use non-existent sourcemap files when reusing cached file transformer results', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+
+			task = source.transform( identity ).transform( function ( input ) {
+				return input + Math.random();
+			}).serve();
+
+			task.on( 'error', done );
+
+			task.once( 'built', function () {
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/foo/foo.md'
+				});
+
+				task.once( 'built', function () {
+					done();
+				});
+			});
+		});
+
 		it( 'prevents build completing if observers error', function () {
 			var source = gobble( 'tmp/foo' );
 			var error, threw;
@@ -667,9 +731,7 @@ module.exports = function () {
 						sander.readFileSync( 'tmp/foo/foo.md' ).toString(),
 						sander.readFileSync( 'tmp/output/foo.md' ).toString()
 					);
-				})
+				});
 		});
 	});
-
-
 };

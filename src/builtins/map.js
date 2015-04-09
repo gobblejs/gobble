@@ -9,7 +9,7 @@ import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
 
-const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=[^\s]+/;
+const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=([^\s]+)/;
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -80,18 +80,10 @@ export default function map ( inputdir, outputdir, options ) {
 								return reject( err );
 							}
 
-							const codepath = resolve( this.cachedir, filename );
-							let code;
-							let map;
-							let mappath;
+							const { code, map } = processResult( result, data, src, dest );
 
-							if ( typeof result === 'object' && result.code ) {
-								code = result.code;
-								map = processSourcemap( result.map, src, dest, data );
-								mappath = `${codepath}.${this.node.id}.map`;
-							} else {
-								code = result;
-							}
+							const codepath = resolve( this.cachedir, filename );
+							const mappath = map ? `${codepath}.${this.node.id}.map` : null;
 
 							writeTransformedResult( this.node, code, map, codepath, mappath, dest )
 								.then( () => options.cache[ filename ] = { codepath, mappath } )
@@ -112,6 +104,49 @@ export default function map ( inputdir, outputdir, options ) {
 	});
 }
 
+function processResult ( result, original, src, dest ) {
+	if ( typeof result === 'object' && 'code' in result ) {
+		// if a sourcemap was returned, use it
+		if ( result.map ) {
+			return {
+				code: result.code,
+				map: processSourcemap( result.map, src, dest, original )
+			};
+		}
+
+		// otherwise we might have an inline sourcemap
+		else {
+			return processInlineSourceMap( result.code, src, dest, original );
+		}
+	}
+
+	if ( typeof result === 'string' ) {
+		return processInlineSourceMap( result, src, dest, original );
+	}
+
+	return { code: result, map: null };
+}
+
+function processInlineSourceMap ( code, src, dest, original ) {
+	// if there's an inline sourcemap, process it
+	let match = SOURCEMAP_COMMENT.exec( code );
+
+	if ( match && /^data/.test( match[1] ) ) {
+		match = /base64,(.+)$/.exec( match[1] );
+
+		if ( !match ) {
+			throw new Error( 'sourceMappingURL is not base64-encoded' );
+		}
+
+		let json = atob( match[1] );
+
+		const map = processSourcemap( json, src, dest, original );
+		code = code.replace( SOURCEMAP_COMMENT, '//# sourceMa' + 'ppingURL=data:application/json;charset=utf-8;base64,' + btoa( map ) );
+	}
+
+	return { code, map: null };
+}
+
 function useCachedTransformation ( node, cached, dest ) {
 	// if there's no sourcemap involved, we can just copy
 	// the previously generated code
@@ -129,7 +164,7 @@ function useCachedTransformation ( node, cached, dest ) {
 		.then( code => {
 			// remove any existing sourcemap comment
 			code = code.replace( SOURCEMAP_COMMENT, '' ) +
-				`\n//# sourceMappingURL=${dest}.${node.id}.map`;
+				`\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
 
 			return Promise.all([
 				writeFile( dest, code ),
@@ -145,7 +180,7 @@ function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
 
 	// remove any existing sourcemap comment
 	code = code.replace( SOURCEMAP_COMMENT, '' );
-	code += `\n//# sourceMappingURL=${dest}.${node.id}.map`;
+	code += `\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
 
 	return Promise.all([
 		writeCode(),
@@ -216,4 +251,12 @@ function shouldSkip ( options, ext, filename ) {
 	}
 
 	return false;
+}
+
+function atob ( base64 ) {
+	return new Buffer( base64, 'base64' ).toString( 'utf8' );
+}
+
+function btoa ( str ) {
+	return new Buffer( str ).toString( 'base64' );
 }

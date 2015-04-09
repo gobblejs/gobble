@@ -2,6 +2,8 @@ console.log( 'Running gobble.js tests. Please ensure that Gobble is not already 
 
 process.chdir( __dirname );
 
+require( 'source-map-support' ).install();
+
 require( './env' )();
 require( './build' )();
 require( './serve' )();

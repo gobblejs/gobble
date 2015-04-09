@@ -9,6 +9,7 @@ import config from '../config';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import warnOnce from '../utils/warnOnce';
+import compareBuffers from '../utils/compareBuffers';
 import serve from './serve';
 import build from './build';
 import watch from './watch';
@@ -132,7 +133,8 @@ export default class Node extends EventEmitter2 {
 
 		maybeChanged.forEach( file => {
 			let checksum = crc32( readFileSync( inputdir, file ) );
-			if ( checksum !== this._checksums[ file ] ) {
+
+			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
 				changed.push({ file, changed: true });
 				this._checksums[ file ] = checksum;
 			}

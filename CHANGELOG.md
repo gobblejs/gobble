@@ -3,6 +3,17 @@
 ## 0.8.0
 
 
+## 0.7.14
+
+* Cached transforms can be reused regardless of sourcemaps ([#46](https://github.com/gobblejs/gobble/issues/46))
+
+## 0.7.13
+
+* Fix regression introduced in 0.7.12
+
+## 0.7.12
+
+* Inline sourcemaps from file transformers are fixed ([#45](https://github.com/gobblejs/gobble/issues/45))
 
 ## 0.7.11
 
@@ -15,6 +26,7 @@
 ## 0.7.10
 
 * Prevent source changes during file transformations causing transformer promise to never resolve ([#41](https://github.com/gobblejs/gobble/issues/41))
+* File transforms can specify their encoding with the `sourceEncoding` option ([#40](https://github.com/gobblejs/gobble/pull/40))
 
 ## 0.7.9
 
