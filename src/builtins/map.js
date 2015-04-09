@@ -80,10 +80,10 @@ export default function map ( inputdir, outputdir, options ) {
 								return reject( err );
 							}
 
-							const codepath = resolve( this.cachedir, filename );
-							const mappath = `${codepath}.${this.node.id}.map`;
-
 							const { code, map } = processResult( result, data, src, dest );
+
+							const codepath = resolve( this.cachedir, filename );
+							const mappath = map ? `${codepath}.${this.node.id}.map` : null;
 
 							writeTransformedResult( this.node, code, map, codepath, mappath, dest )
 								.then( () => options.cache[ filename ] = { codepath, mappath } )

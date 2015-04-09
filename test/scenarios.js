@@ -7,6 +7,10 @@ var simulateChange = require( './utils/simulateChange' );
 
 gobble.cwd( __dirname );
 
+function identity ( input ) {
+	return input;
+}
+
 module.exports = function () {
 	var task;
 
@@ -548,6 +552,27 @@ module.exports = function () {
 			});
 
 			task.on( 'error', done );
+		});
+
+		it( 'does not use non-existent sourcemap files when reusing cached file transformer results', function ( done ) {
+			var source = gobble( 'tmp/foo' );
+
+			task = source.transform( identity ).transform( function ( input ) {
+				return input + Math.random();
+			}).serve();
+
+			task.on( 'error', done );
+
+			task.once( 'built', function () {
+				simulateChange( source, {
+					type: 'change',
+					path: 'tmp/foo/foo.md'
+				});
+
+				task.once( 'built', function () {
+					done();
+				});
+			});
 		});
 	});
 

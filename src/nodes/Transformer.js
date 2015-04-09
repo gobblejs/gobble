@@ -12,6 +12,7 @@ import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
+import compareBuffers from '../utils/compareBuffers';
 import { ABORTED } from '../utils/signals';
 
 export default class Transformer extends Node {
@@ -175,7 +176,8 @@ export default class Transformer extends Node {
 
 		maybeChanged.forEach( file => {
 			let checksum = crc32( readFileSync( inputdir, file ) );
-			if ( checksum !== this._checksums[ file ] ) {
+
+			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
 				changed.push({ file, changed: true });
 				this._checksums[ file ] = checksum;
 			}
