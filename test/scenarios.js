@@ -634,16 +634,14 @@ module.exports = function () {
 				});
 		});
 
-		it( 'skips an observer if __condition is false', function () {
+		it( 'skips an observer if condition is false', function () {
 			var observed = 0;
 
 			function incrementObservedCount () {
 				observed += 1;
 			}
 
-			var source = gobble( 'tmp/foo' ).observe( incrementObservedCount, {
-				__condition: false
-			});
+			var source = gobble( 'tmp/foo' ).observeIf( false, incrementObservedCount );
 
 			task = source.build({
 				dest: 'tmp/output'
@@ -652,6 +650,24 @@ module.exports = function () {
 			return task.then( function () {
 				assert.equal( observed, 0 );
 			});
+		});
+
+		it( 'skips a transformer if condition is false', function () {
+			var source = gobble( 'tmp/foo' );
+
+			return source
+				.transformIf( false, function ( input ) {
+					return input.toUpperCase();
+				})
+				.build({
+					dest: 'tmp/output'
+				})
+				.then( function () {
+					assert.equal(
+						sander.readFileSync( 'tmp/foo/foo.md' ).toString(),
+						sander.readFileSync( 'tmp/output/foo.md' ).toString()
+					);
+				})
 		});
 	});
 

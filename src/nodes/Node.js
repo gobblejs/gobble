@@ -174,15 +174,15 @@ export default class Node extends EventEmitter2 {
 	}
 
 	observe ( fn, userOptions ) {
-		if ( userOptions && '__condition' in userOptions && !userOptions.__condition ) {
-			return this;
-		}
-
 		if ( typeof fn === 'string' ) {
 			fn = tryToLoad( fn );
 		}
 
 		return new Observer( this, fn, userOptions );
+	}
+
+	observeIf ( condition, fn, userOptions ) {
+		return condition ? this.observe( fn, userOptions ) : this;
 	}
 
 	serve ( options ) {
@@ -211,6 +211,10 @@ export default class Node extends EventEmitter2 {
 
 		// Otherwise it's a directory transformer
 		return new Transformer( this, fn, userOptions );
+	}
+
+	transformIf ( condition, fn, userOptions ) {
+		return condition ? this.transform( fn, userOptions ) : this;
 	}
 
 	watch ( options ) {
