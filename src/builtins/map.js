@@ -9,7 +9,7 @@ import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
 
-const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=([^\s]+)/;
+const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=([^\r\n]+)/;
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
