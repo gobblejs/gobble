@@ -35,6 +35,8 @@
   "devDependencies": {
     "babel": "^4.6.1",
     "esperanto": "^0.6.16",
+    "gobble-coffee": "^0.2.1",
+    "gobble-uglifyjs": "^0.2.1",
     "mocha": "^2.1.0",
     "request": "^2.45.0"
   },

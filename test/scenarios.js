@@ -748,9 +748,31 @@ module.exports = function () {
 				return sander.readFile( 'tmp/output/file with spaces.js' )
 					.then( String )
 					.then( function ( contents ) {
-						var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( contents )[0];
+						var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( contents )[1];
 						assert.ok( !/\s/.test( sourceMappingURL ) );
 					});
+			});
+		});
+
+		it.only( 'flattens sourcemap chains when serving (#22)', function ( done ) {
+			var source = gobble( 'tmp/sourcemaps' );
+
+			task = source
+				.transform( 'coffee' )
+				.transform( 'uglifyjs', { ext: '.min.js' })
+				.serve();
+
+			task.once( 'ready', function () {
+				request( 'http://localhost:4567/app.min.js', function ( err, response, body ) {
+					var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( body )[1];
+					console.log( 'sourceMappingURL', sourceMappingURL );
+					assert.equal( sourceMappingURL, 'app.min.js.map' );
+
+					request( 'http://localhost:4567/app.min.js.map', function ( err, response, body ) {
+						var map = JSON.parse( body );
+						done( 1 );
+					});
+				});
 			});
 		});
 	});
