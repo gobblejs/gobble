@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.8.0
+## 0.7.15
 
+* Implement `node.observe()`, `node.observeIf()` and `node.transformIf()` ([#44](https://github.com/gobblejs/gobble/issues/44))
+* Handle files with spaces when creating sourcemaps ([#47](https://github.com/gobblejs/gobble/issues/47))
 
 ## 0.7.14
 
