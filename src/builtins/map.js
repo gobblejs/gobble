@@ -10,6 +10,7 @@ import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
 
 const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=([^\r\n]+)/;
+const SOURCEMAPPING_URL = 'sourceMappingURL';
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -141,7 +142,7 @@ function processInlineSourceMap ( code, src, dest, original ) {
 		let json = atob( match[1] );
 
 		const map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, '//# sourceMa' + 'ppingURL=data:application/json;charset=utf-8;base64,' + btoa( map ) );
+		code = code.replace( SOURCEMAP_COMMENT, `//# ${SOURCEMAPPING_URL}=data:application/json;charset=utf-8;base64,${btoa( map )}` );
 	}
 
 	return { code, map: null };
@@ -164,7 +165,7 @@ function useCachedTransformation ( node, cached, dest ) {
 		.then( code => {
 			// remove any existing sourcemap comment
 			code = code.replace( SOURCEMAP_COMMENT, '' ) +
-				`\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
+				`\n//# ${SOURCEMAPPING_URL}=${dest}.${node.id}.map`;
 
 			return Promise.all([
 				writeFile( dest, code ),
@@ -180,7 +181,7 @@ function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
 
 	// remove any existing sourcemap comment
 	code = code.replace( SOURCEMAP_COMMENT, '' );
-	code += `\n//# sourceMa` + `ppingURL=${dest}.${node.id}.map`;
+	code += `\n//# ${SOURCEMAPPING_URL}=` + encodeURI( `${dest}.${node.id}.map` );
 
 	return Promise.all([
 		writeCode(),

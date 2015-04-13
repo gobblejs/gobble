@@ -733,5 +733,25 @@ module.exports = function () {
 					);
 				});
 		});
+
+		it.only( 'encodes sourceMappingURLs (#47)', function () {
+			var source = gobble( 'tmp/spaces' );
+
+			return source.transform( function ( input ) {
+				return {
+					code: input,
+					map: {}
+				};
+			}).build({
+				dest: 'tmp/output'
+			}).then( function () {
+				return sander.readFile( 'tmp/output/file with spaces.js' )
+					.then( String )
+					.then( function ( contents ) {
+						var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( contents )[0];
+						assert.ok( !/\s/.test( sourceMappingURL ) );
+					});
+			});
+		});
 	});
 };
