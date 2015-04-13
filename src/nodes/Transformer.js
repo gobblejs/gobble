@@ -12,7 +12,6 @@ import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
-import compareBuffers from '../utils/compareBuffers';
 import { ABORTED } from '../utils/signals';
 
 export default class Transformer extends Node {
@@ -151,39 +150,6 @@ export default class Transformer extends Node {
 
 		this.input.stop();
 		this._active = false;
-	}
-
-	getChanges ( inputdir ) {
-		const files = lsrSync( inputdir );
-
-		if ( !this._files ) {
-			this._files = files;
-			this._checksums = {};
-
-			files.forEach( file => {
-				this._checksums[ file ] = crc32( readFileSync( inputdir, file ) );
-			});
-
-			return files.map( file => ({ file, added: true }) );
-		}
-
-		const added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
-		const removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
-
-		const maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
-
-		let changed = [];
-
-		maybeChanged.forEach( file => {
-			let checksum = crc32( readFileSync( inputdir, file ) );
-
-			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
-				changed.push({ file, changed: true });
-				this._checksums[ file ] = checksum;
-			}
-		});
-
-		return added.concat( removed ).concat( changed );
 	}
 
 	_cleanup ( latest ) {

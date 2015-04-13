@@ -1,13 +1,15 @@
 import { EventEmitter2 } from 'eventemitter2';
-import { rimraf } from 'sander';
+import * as crc32 from 'buffer-crc32';
+import { lsrSync, readFileSync, rimraf } from 'sander';
 import { join, resolve } from 'path';
 import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';
-import { Transformer } from './index';
+import { Observer, Transformer } from './index';
 import config from '../config';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import warnOnce from '../utils/warnOnce';
+import compareBuffers from '../utils/compareBuffers';
 import serve from './serve';
 import build from './build';
 import watch from './watch';
@@ -108,6 +110,39 @@ export default class Node extends EventEmitter2 {
 		return new Transformer( this, include, { patterns, exclude: true });
 	}
 
+	getChanges ( inputdir ) {
+		const files = lsrSync( inputdir );
+
+		if ( !this._files ) {
+			this._files = files;
+			this._checksums = {};
+
+			files.forEach( file => {
+				this._checksums[ file ] = crc32( readFileSync( inputdir, file ) );
+			});
+
+			return files.map( file => ({ file, added: true }) );
+		}
+
+		const added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
+		const removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
+
+		const maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
+
+		let changed = [];
+
+		maybeChanged.forEach( file => {
+			let checksum = crc32( readFileSync( inputdir, file ) );
+
+			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
+				changed.push({ file, changed: true });
+				this._checksums[ file ] = checksum;
+			}
+		});
+
+		return added.concat( removed ).concat( changed );
+	}
+
 	grab () {
 		const src = join.apply( null, arguments );
 		return new Transformer( this, grab, { src });
@@ -140,6 +175,18 @@ export default class Node extends EventEmitter2 {
 		return new Transformer( this, move, { dest });
 	}
 
+	observe ( fn, userOptions ) {
+		if ( typeof fn === 'string' ) {
+			fn = tryToLoad( fn );
+		}
+
+		return new Observer( this, fn, userOptions );
+	}
+
+	observeIf ( condition, fn, userOptions ) {
+		return condition ? this.observe( fn, userOptions ) : this;
+	}
+
 	serve ( options ) {
 		return serve( this, options );
 	}
@@ -166,6 +213,10 @@ export default class Node extends EventEmitter2 {
 
 		// Otherwise it's a directory transformer
 		return new Transformer( this, fn, userOptions );
+	}
+
+	transformIf ( condition, fn, userOptions ) {
+		return condition ? this.transform( fn, userOptions ) : this;
 	}
 
 	watch ( options ) {

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.0
+
+
 ## 0.7.14
 
 * Cached transforms can be reused regardless of sourcemaps ([#46](https://github.com/gobblejs/gobble/issues/46))
