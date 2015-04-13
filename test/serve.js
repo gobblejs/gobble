@@ -36,6 +36,11 @@ module.exports = function () {
 					task.close().then( done );
 				});
 			});
+
+			task.on( 'error', function ( err ) {
+				task.close();
+				done( err );
+			});
 		});
 	});
 };
