@@ -734,7 +734,7 @@ module.exports = function () {
 				});
 		});
 
-		it.only( 'encodes sourceMappingURLs (#47)', function () {
+		it( 'encodes sourceMappingURLs (#47)', function () {
 			var source = gobble( 'tmp/spaces' );
 
 			return source.transform( function ( input ) {

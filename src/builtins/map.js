@@ -9,8 +9,10 @@ import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
 
-const SOURCEMAP_COMMENT = /\/\/#\s*sourceMappingURL=([^\r\n]+)/;
-const SOURCEMAPPING_URL = 'sourceMappingURL';
+let SOURCEMAPPING_URL = 'sourceMa';
+SOURCEMAPPING_URL += 'ppingURL';
+
+const SOURCEMAP_COMMENT = new RegExp( `\\/\\/#\\s*${SOURCEMAPPING_URL}=([^\\r\\n]+)` );
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
