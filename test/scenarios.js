@@ -3,6 +3,7 @@ var path = require( 'path' );
 var request = require( 'request' );
 var gobble = require( '../tmp' ).default;
 var sander = require( 'sander' );
+var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 var simulateChange = require( './utils/simulateChange' );
 
 var Promise = sander.Promise;
@@ -754,7 +755,7 @@ module.exports = function () {
 			});
 		});
 
-		it.only( 'flattens sourcemap chains when serving (#22)', function ( done ) {
+		it.skip( 'flattens sourcemap chains when serving (#22)', function ( done ) {
 			var source = gobble( 'tmp/sourcemaps' );
 
 			task = source
@@ -774,6 +775,44 @@ module.exports = function () {
 					});
 				});
 			});
+		});
+
+		it.only( 'flattens sourcemap chains when building (#22)', function () {
+			var source = gobble( 'tmp/sourcemaps' );
+
+			return source
+				.transform( 'coffee' )
+				.transform( 'uglifyjs', { ext: '.min.js' })
+				.build({
+					dest: 'tmp/output'
+				})
+				.then( function () {
+					return Promise.all([
+						sander.readFile( 'tmp/output/app.min.js' )
+							.then( String )
+							.then( function ( content ) {
+								var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( content )[1];
+								assert.equal( sourceMappingURL, 'app.min.js.map' );
+							}),
+
+						sander.readFile( 'tmp/output/app.min.js.map' )
+							.then( String )
+							.then( JSON.parse )
+							.then( function ( map ) {
+								var smc = new SourceMapConsumer( map );
+								var loc = smc.originalPositionFor({ line: 1, column: 31 });
+
+								assert.strictEqual( loc.line, 2 );
+								assert.strictEqual( loc.column, 8 );
+								assert.strictEqual( loc.source.slice( -10 ), 'app.coffee' ); // TODO get head round source paths
+							}),
+
+						sander.lsr( 'tmp/output' )
+							.then( function ( files ) {
+								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ]);
+							})
+					]);
+				});
 		});
 	});
 };

@@ -1,5 +1,6 @@
 import { resolve } from 'path';
-import { copydir, readdir } from 'sander';
+import { copydir, lsr ,readdir, Promise } from 'sander';
+import * as sorcery from 'sorcery';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
@@ -31,18 +32,29 @@ export default function ( node, options ) {
 			task.emit( 'info', details );
 		});
 
-		node.start(); // TODO this starts a file watcher! need to start without watching
+		return node.ready()
+			.then( inputdir => {
+				// flatten sourcemap chains
+				return lsr( inputdir ).then( files => {
+					const promises = files
+						.filter( file => file.slice( -4 ) !== '.map' )
+						.map( file => {
+							return sorcery.load( resolve( inputdir, file ) ).then( chain => {
+								if ( chain ) {
+									// overwrite in place
+									return chain.write();
+								}
+							});
+						});
 
-		return node.ready().then(
-			inputdir => {
-				node.stop();
-				return copydir( inputdir ).to( dest );
-			},
-			err => {
-				node.stop();
-				throw err;
-			}
-		);
+					return Promise.all( promises );
+				})
+				.then( () => inputdir );
+			})
+			.then(
+				inputdir => copydir( inputdir ).to( dest ),
+				err => { throw err }
+			);
 	}
 
 	promise = cleanup( gobbledir )
