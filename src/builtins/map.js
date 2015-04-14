@@ -85,11 +85,14 @@ export default function map ( inputdir, outputdir, options ) {
 
 							const { code, map } = processResult( result, data, src, dest );
 
-							const codepath = resolve( this.cachedir, filename );
-							const mappath = map ? `${codepath}.${this.node.id}.map` : null;
+							if ( map ) {
+								this.node.sourcemaps[ dest ] = map;
+							}
 
-							writeTransformedResult( this.node, code, map, codepath, mappath, dest )
-								.then( () => options.cache[ filename ] = { codepath, mappath } )
+							const codepath = resolve( this.cachedir, filename );
+
+							writeTransformedResult( code, codepath, dest )
+								.then( () => options.cache[ filename ] = { codepath, map } )
 								.then( fulfil )
 								.catch( reject );
 						});
@@ -133,6 +136,7 @@ function processResult ( result, original, src, dest ) {
 function processInlineSourceMap ( code, src, dest, original ) {
 	// if there's an inline sourcemap, process it
 	let match = SOURCEMAP_COMMENT.exec( code );
+	let map = null;
 
 	if ( match && /^data/.test( match[1] ) ) {
 		match = /base64,(.+)$/.exec( match[1] );
@@ -143,61 +147,26 @@ function processInlineSourceMap ( code, src, dest, original ) {
 
 		let json = atob( match[1] );
 
-		const map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, `//# ${SOURCEMAPPING_URL}=data:application/json;charset=utf-8;base64,${btoa( map )}` );
+		map = processSourcemap( json, src, dest, original );
+		code = code.replace( SOURCEMAP_COMMENT, '' );
 	}
 
-	return { code, map: null };
+	return { code, map };
 }
 
 function useCachedTransformation ( node, cached, dest ) {
-	// if there's no sourcemap involved, we can just copy
-	// the previously generated code
-	if ( !cached.mappath ) {
-		return link( cached.codepath ).to( dest );
+	if ( cached.map ) {
+		node.sourcemaps[ dest ] = map;
 	}
 
-	// otherwise, we need to write a new file with the correct
-	// sourceMappingURL. (TODO is this really the best way?
-	// What if sourcemaps had their own parallel situation? What
-	// if the sourcemap itself has changed? Need to investigate
-	// when I'm less pressed for time)
-	return readFile( cached.codepath )
-		.then( String )
-		.then( code => {
-			// remove any existing sourcemap comment
-			code = code.replace( SOURCEMAP_COMMENT, '' ) +
-				`\n//# ${SOURCEMAPPING_URL}=${dest}.${node.id}.map`;
-
-			return Promise.all([
-				writeFile( dest, code ),
-				link( cached.mappath ).to( `${dest}.${node.id}.map` )
-			]);
-		});
+	return link( cached.codepath ).to( dest );
 }
 
-function writeTransformedResult ( node, code, map, codepath, mappath, dest ) {
-	if ( !map ) {
-		return writeCode();
-	}
-
-	// remove any existing sourcemap comment
-	code = code.replace( SOURCEMAP_COMMENT, '' );
-	code += `\n//# ${SOURCEMAPPING_URL}=` + encodeURI( `${dest}.${node.id}.map` );
-
-	return Promise.all([
-		writeCode(),
-		writeFile( mappath, map ).then( () =>
-			linkFile( mappath ).to( `${dest}.${node.id}.map` )
-		)
-	]);
-
-	function writeCode () {
-		return writeFile( codepath, code ).then( () =>
-			// TODO use sander.link?
-			linkFile( codepath ).to( dest )
-		);
-	}
+function writeTransformedResult ( code, codepath, dest ) {
+	return writeFile( codepath, code ).then( () =>
+		// TODO use sander.link?
+		linkFile( codepath ).to( dest )
+	);
 }
 
 function createTransformError ( original, src, filename, node ) {
@@ -231,7 +200,7 @@ function processSourcemap ( map, src, dest, data ) {
 	map.file = dest;
 	map.sources = [ src ];
 	map.sourcesContent = [ data ];
-	return JSON.stringify( map );
+	return map;
 }
 
 function shouldSkip ( options, ext, filename ) {

@@ -8,6 +8,7 @@ import queue from '../queue';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import uid from '../utils/uid';
+import extend from '../utils/extend';
 import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
@@ -36,6 +37,10 @@ export default class Transformer extends Node {
 		}
 	}
 
+	getSourcemaps () {
+		return extend( {}, this.input.getSourcemaps(), this.sourcemaps );
+	}
+
 	ready () {
 		let outputdir;
 		let transformation;
@@ -53,6 +58,8 @@ export default class Transformer extends Node {
 				this._ready = null;
 				transformation.aborted = true;
 			};
+
+			this.sourcemaps = {};
 
 			outputdir = resolve( session.config.gobbledir, this.id, '' + this.counter++ );
 

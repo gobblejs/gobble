@@ -1,5 +1,5 @@
 var assert = require( 'assert' ),
-	request = require( 'request' ),
+	request = require( 'request-promise' ),
 	path = require( 'path' ),
 	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) );
 
@@ -20,7 +20,7 @@ module.exports = function () {
 			});
 
 			task.on( 'ready', function () {
-				request( 'http://localhost:6789/foo.md', function ( err, response, body ) {
+				request( 'http://localhost:6789/foo.md' ).then( function ( body ) {
 					assert.equal( body.trim(), 'foo: this is some text' );
 					task.close().then( done );
 				});
@@ -31,7 +31,7 @@ module.exports = function () {
 			var task = require( './sample/foo' ).serve();
 
 			task.on( 'ready', function () {
-				request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
 					assert.equal( body.trim(), 'foo: this is some text' );
 					task.close().then( done );
 				});

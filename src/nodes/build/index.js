@@ -4,6 +4,7 @@ import * as sorcery from 'sorcery';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
+import flattenSourcemaps from '../../utils/flattenSourcemaps';
 
 export default function ( node, options ) {
 	if ( !options || !options.dest ) {
@@ -33,24 +34,7 @@ export default function ( node, options ) {
 		});
 
 		return node.ready()
-			.then( inputdir => {
-				// flatten sourcemap chains
-				return lsr( inputdir ).then( files => {
-					const promises = files
-						.filter( file => file.slice( -4 ) !== '.map' )
-						.map( file => {
-							return sorcery.load( resolve( inputdir, file ) ).then( chain => {
-								if ( chain ) {
-									// overwrite in place
-									return chain.write();
-								}
-							});
-						});
-
-					return Promise.all( promises );
-				})
-				.then( () => inputdir );
-			})
+			.then( inputdir => flattenSourcemaps( inputdir, node ) )
 			.then(
 				inputdir => copydir( inputdir ).to( dest ),
 				err => { throw err }

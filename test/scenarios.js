@@ -1,6 +1,6 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
-var request = require( 'request' );
+var request = require( 'request-promise' );
 var gobble = require( '../tmp' ).default;
 var sander = require( 'sander' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
@@ -60,8 +60,7 @@ module.exports = function () {
 
 			task.once( 'ready', function () {
 				task.once( 'built', function () {
-					request( 'http://localhost:4567/foo.txt', function ( err, response, body ) {
-						assert.equal( response.statusCode, 200 );
+					request( 'http://localhost:4567/foo.txt' ).then( function ( body ) {
 						assert.equal( body.trim(), 'foo: this is some text' );
 						done();
 					});
@@ -272,9 +271,8 @@ module.exports = function () {
 
 				task.once( 'ready', function () {
 					task.once( 'built', function () {
-						request( 'http://localhost:4567/bar.md', function ( err, response, body ) {
+						request( 'http://localhost:4567/bar.md' ).then( function ( body ) {
 							try {
-								assert.equal( response.statusCode, 200 );
 								assert.equal( body.trim(), 'bar: this is some text' );
 							} catch ( e ) {
 								done( e );
@@ -292,19 +290,21 @@ module.exports = function () {
 			}
 		});
 
-		it( 'should use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
+		it.skip( 'should use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
 			var source = gobble( 'tmp/foo' );
 
 			task = source.transform( function ( input ) {
 				return {
 					code: input,
-					map: {}
+					map: {
+						mappings: ''
+					}
 				};
 			}).serve();
 
 			task.once( 'ready', function () {
 				task.once( 'built', function () {
-					request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+					request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
 						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
 						assert.ok( /^(?:[A-Z]:)?[\/\\]/i.test( sourceMappingURL ) );
 						assert.ok( sander.existsSync( sourceMappingURL ), 'sourcemap file does not exist' );
@@ -318,11 +318,7 @@ module.exports = function () {
 				});
 			});
 
-			task.on( 'error', function ( err ) {
-				setTimeout( function () {
-					throw err;
-				});
-			});
+			task.on( 'error', done );
 		});
 
 		it( 'should print correct stack traces when errors occur', function ( done ) {
@@ -367,10 +363,10 @@ module.exports = function () {
 			task = gobble([ 'tmp/bar/a', 'tmp/bar/b' ]).serve();
 
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/dir/a.md', function ( err, response, body ) {
+				request( 'http://localhost:4567/dir/a.md' ).then( function ( body ) {
 					assert.equal( body, 'this is a.md' );
 
-					request( 'http://localhost:4567/dir/b.md', function ( err, response, body ) {
+					request( 'http://localhost:4567/dir/b.md' ).then( function ( body ) {
 						assert.equal( body, 'this is b.md' );
 						done();
 					});
@@ -384,13 +380,15 @@ module.exports = function () {
 			function copy ( input ) {
 				return {
 					code: input,
-					map: {}
+					map: {
+						mappings: ''
+					}
 				};
 			}
 
 			task.on( 'error', done );
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
 					assert.ok( /^foo: this is some text/.test( body ) );
 					done();
 				});
@@ -403,13 +401,15 @@ module.exports = function () {
 			function copy ( input ) {
 				return {
 					code: input.toUpperCase(),
-					map: {}
+					map: {
+						mappings: ''
+					}
 				};
 			}
 
 			task.on( 'error', done );
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/foo.md', function ( err, response, body ) {
+				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
 					var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
 					sander.readFile( sourceMappingURL ).then( String ).then( JSON.parse ).then( function ( map ) {
 						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
@@ -423,22 +423,27 @@ module.exports = function () {
 			var source = gobble( 'tmp/foo' );
 
 			return source.transform( function ( input ) {
-				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,e30='; // e30= is {}
+				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + btoa( JSON.stringify({ mappings: '' }) );
 			}).build({
 				dest: 'tmp/output'
 			}).then( function () {
-				return sander.readFile( 'tmp/output/foo.md' )
-					.then( String )
-					.then( function ( body ) {
-						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-						var base64 = /base64,(.+)/.exec( sourceMappingURL )[1];
-						var json = new Buffer( base64, 'base64' ).toString();
-						var map = JSON.parse( json );
+				return Promise.all([
+					sander.readFile( 'tmp/output/foo.md' )
+						.then( String )
+						.then( function ( body ) {
+							var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
+							assert.equal( sourceMappingURL, 'foo.md.map' );
+						}),
 
-						assert.ok( /foo\.md$/.test( map.file ) );
-						assert.deepEqual( map.sources, [ path.resolve( 'tmp/foo/foo.md' ) ] );
-						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
-					});
+					sander.readFile( 'tmp/output/foo.md.map' )
+						.then( String )
+						.then( JSON.parse )
+						.then( function ( map ) {
+							assert.ok( /foo\.md$/.test( map.file ) );
+							assert.deepEqual( map.sources, [ path.resolve( 'tmp/foo/foo.md' ) ] );
+							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+						})
+				]);
 			});
 		});
 
@@ -755,7 +760,7 @@ module.exports = function () {
 			});
 		});
 
-		it.skip( 'flattens sourcemap chains when serving (#22)', function ( done ) {
+		it( 'flattens sourcemap chains when serving (#22)', function ( done ) {
 			var source = gobble( 'tmp/sourcemaps' );
 
 			task = source
@@ -764,20 +769,31 @@ module.exports = function () {
 				.serve();
 
 			task.once( 'ready', function () {
-				request( 'http://localhost:4567/app.min.js', function ( err, response, body ) {
-					var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( body )[1];
-					console.log( 'sourceMappingURL', sourceMappingURL );
-					assert.equal( sourceMappingURL, 'app.min.js.map' );
+				Promise.all([
+					request( 'http://localhost:4567/app.min.js' )
+						.then( function ( body ) {
+							var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( body )[1];
+							assert.equal( sourceMappingURL, 'app.min.js.map' );
+						}),
 
-					request( 'http://localhost:4567/app.min.js.map', function ( err, response, body ) {
-						var map = JSON.parse( body );
-						done( 1 );
-					});
-				});
+					request( 'http://localhost:4567/app.min.js.map' )
+						.then( String )
+							.then( JSON.parse )
+							.then( function ( map ) {
+								var smc = new SourceMapConsumer( map );
+								var loc = smc.originalPositionFor({ line: 1, column: 31 });
+
+								assert.strictEqual( loc.line, 2 );
+								assert.strictEqual( loc.column, 8 );
+								assert.strictEqual( loc.source.slice( -10 ), 'app.coffee' );
+							})
+				]).then( function () {
+					done();
+				}, done );
 			});
 		});
 
-		it.only( 'flattens sourcemap chains when building (#22)', function () {
+		it( 'flattens sourcemap chains when building (#22)', function () {
 			var source = gobble( 'tmp/sourcemaps' );
 
 			return source
@@ -816,3 +832,7 @@ module.exports = function () {
 		});
 	});
 };
+
+function btoa ( str ) {
+	return new Buffer( str ).toString( 'base64' );
+}
