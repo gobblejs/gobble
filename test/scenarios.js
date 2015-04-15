@@ -290,37 +290,6 @@ module.exports = function () {
 			}
 		});
 
-		it.skip( 'should use absolute URLs for automatically created sourceMappingURL comments', function ( done ) {
-			var source = gobble( 'tmp/foo' );
-
-			task = source.transform( function ( input ) {
-				return {
-					code: input,
-					map: {
-						mappings: ''
-					}
-				};
-			}).serve();
-
-			task.once( 'ready', function () {
-				task.once( 'built', function () {
-					request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
-						var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-						assert.ok( /^(?:[A-Z]:)?[\/\\]/i.test( sourceMappingURL ) );
-						assert.ok( sander.existsSync( sourceMappingURL ), 'sourcemap file does not exist' );
-						done();
-					});
-				});
-
-				simulateChange( source, {
-					type: 'change',
-					path: 'tmp/foo/foo.md'
-				});
-			});
-
-			task.on( 'error', done );
-		});
-
 		it( 'should print correct stack traces when errors occur', function ( done ) {
 			var source = gobble( 'tmp/foo' );
 
@@ -404,7 +373,8 @@ module.exports = function () {
 				return {
 					code: input.toUpperCase(),
 					map: {
-						mappings: ''
+						mappings: 'AACA',
+						names: []
 					}
 				};
 			}
@@ -413,7 +383,8 @@ module.exports = function () {
 			task.on( 'built', function () {
 				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
 					var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-					sander.readFile( sourceMappingURL ).then( String ).then( JSON.parse ).then( function ( map ) {
+					assert.equal( sourceMappingURL, 'foo.md.map' );
+					request( 'http://localhost:4567/foo.md.map' ).then( JSON.parse ).then( function ( map ) {
 						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
 						done();
 					}).catch( done );
@@ -425,7 +396,7 @@ module.exports = function () {
 			var source = gobble( 'tmp/foo' );
 
 			return source.transform( function ( input ) {
-				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + btoa( JSON.stringify({ mappings: '' }) );
+				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + btoa( JSON.stringify({ mappings: 'AAAA', names: [] }) );
 			}).build({
 				dest: 'tmp/output'
 			}).then( function () {
@@ -442,7 +413,7 @@ module.exports = function () {
 						.then( JSON.parse )
 						.then( function ( map ) {
 							assert.ok( /foo\.md$/.test( map.file ) );
-							assert.deepEqual( map.sources, [ path.resolve( 'tmp/foo/foo.md' ) ] );
+							assert.deepEqual( map.sources, ['../foo/foo.md' ] );
 							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
 						})
 				]);
@@ -748,7 +719,10 @@ module.exports = function () {
 			return source.transform( function ( input ) {
 				return {
 					code: input,
-					map: {}
+					map: {
+						mappings: 'AACA',
+						names: []
+					}
 				};
 			}).build({
 				dest: 'tmp/output'
