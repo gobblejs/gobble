@@ -156,7 +156,7 @@ function processInlineSourceMap ( code, src, dest, original ) {
 
 function useCachedTransformation ( node, cached, dest ) {
 	if ( cached.map ) {
-		node.sourcemaps[ dest ] = map;
+		node.sourcemaps[ dest ] = cached.map;
 	}
 
 	return link( cached.codepath ).to( dest );

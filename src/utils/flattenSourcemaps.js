@@ -2,7 +2,7 @@ import { resolve } from 'path';
 import { lsr, Promise } from 'sander';
 import { load } from 'sorcery';
 
-export default function flattenSourcemaps ( inputdir, node ) {
+export default function flattenSourcemaps ( inputdir, outputdir, node ) {
 	return lsr( inputdir ).then( files => {
 		const promises = files
 			.filter( file => file.slice( -4 ) !== '.map' )
@@ -12,7 +12,9 @@ export default function flattenSourcemaps ( inputdir, node ) {
 				}).then( chain => {
 					if ( chain ) {
 						// overwrite in place
-						return chain.write();
+						return chain.write({
+							base: outputdir
+						});
 					}
 				});
 			});

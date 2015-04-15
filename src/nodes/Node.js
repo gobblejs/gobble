@@ -40,7 +40,7 @@ export default class Node extends EventEmitter2 {
 		return build( this, options );
 	}
 
-	createWatchTask () {
+	createWatchTask ( dest ) {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
 
@@ -78,7 +78,7 @@ export default class Node extends EventEmitter2 {
 			buildScheduled = false;
 
 			node.ready()
-				.then( d => flattenSourcemaps( d, node ) )
+				.then( d => flattenSourcemaps( d, dest, node ) )
 				.then( d => {
 					watchTask.emit( 'info', {
 						code: 'BUILD_COMPLETE',

@@ -34,7 +34,7 @@ export default function ( node, options ) {
 		});
 
 		return node.ready()
-			.then( inputdir => flattenSourcemaps( inputdir, node ) )
+			.then( inputdir => flattenSourcemaps( inputdir, dest, node ) )
 			.then(
 				inputdir => copydir( inputdir ).to( dest ),
 				err => { throw err }
