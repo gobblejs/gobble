@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0
+
+* Sourcemaps from multiple steps are 'flattened' automatically using [sorcery](https://github.com/Rich-Harris/sorcery) ([#22](https://github.com/gobblejs/gobble/issues/22))
+
 ## 0.7.15
 
 * Implement `node.observe()`, `node.observeIf()` and `node.transformIf()` ([#44](https://github.com/gobblejs/gobble/issues/44))
