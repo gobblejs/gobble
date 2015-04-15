@@ -388,10 +388,12 @@ module.exports = function () {
 
 			task.on( 'error', done );
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
-					assert.ok( /^foo: this is some text/.test( body ) );
-					done();
-				});
+				request( 'http://localhost:4567/foo.md' )
+					.then( function ( body ) {
+						assert.ok( /^foo: this is some text/.test( body ) );
+						done();
+					})
+					.catch( done );
 			});
 		});
 
