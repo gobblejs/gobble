@@ -197,6 +197,12 @@ export default class Node extends EventEmitter2 {
 
 	transform ( fn, userOptions ) {
 		if ( typeof fn === 'string' ) {
+			// TODO remove this for 0.9.0
+			if ( fn === 'sorcery' ) {
+				warnOnce( 'Sourcemaps are flattened automatically as of gobble 0.8.0. You should remove the sorcery transformation from your build definition' );
+				return this;
+			}
+
 			fn = tryToLoad( fn );
 		}
 
