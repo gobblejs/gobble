@@ -22,6 +22,10 @@ export default class Observer extends Node {
 		this.id = uid( this.name );
 	}
 
+	getSourcemaps () {
+		return this.input.getSourcemaps();
+	}
+
 	ready () {
 		let observation;
 

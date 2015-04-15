@@ -22,6 +22,7 @@
     "resolve": "^1.0.0",
     "rimraf": "~2.2.8",
     "sander": "^0.2.1",
+    "sorcery": "^0.5.0",
     "symlink-or-copy": "^1.0.0",
     "tiny-lr": "~0.1.0"
   },
@@ -35,8 +36,11 @@
   "devDependencies": {
     "babel": "^4.6.1",
     "esperanto": "^0.6.16",
+    "gobble-coffee": "^0.2.1",
+    "gobble-uglifyjs": "^0.2.1",
     "mocha": "^2.1.0",
-    "request": "^2.45.0"
+    "request-promise": "^0.4.2",
+    "source-map": "^0.4.2"
   },
   "scripts": {
     "prepublish": "set -e; npm run build",

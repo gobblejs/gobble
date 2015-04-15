@@ -43,11 +43,16 @@ module.exports = function () {
 			});
 
 			task.once( 'built', function () {
-				sander.readFile( 'output', 'foo.md' ).then( String ).then( function ( body ) {
-					assert.equal( body.trim(), 'foo: this is some text' );
-					task.close().then( done );
-				});
+				sander.readFile( 'output', 'foo.md' )
+					.then( String )
+					.then( function ( body ) {
+						assert.equal( body.trim(), 'foo: this is some text' );
+						task.close().then( done );
+					})
+					.catch( done );
 			});
+
+			task.on( 'error', done );
 		});
 
 		it( 'should update files on change', function ( done ) {

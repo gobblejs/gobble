@@ -1,8 +1,10 @@
 import { resolve } from 'path';
-import { copydir, readdir } from 'sander';
+import { copydir, lsr ,readdir, Promise } from 'sander';
+import * as sorcery from 'sorcery';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
+import flattenSourcemaps from '../../utils/flattenSourcemaps';
 
 export default function ( node, options ) {
 	if ( !options || !options.dest ) {
@@ -31,18 +33,12 @@ export default function ( node, options ) {
 			task.emit( 'info', details );
 		});
 
-		node.start(); // TODO this starts a file watcher! need to start without watching
-
-		return node.ready().then(
-			inputdir => {
-				node.stop();
-				return copydir( inputdir ).to( dest );
-			},
-			err => {
-				node.stop();
-				throw err;
-			}
-		);
+		return node.ready()
+			.then( inputdir => flattenSourcemaps( inputdir, dest, node ) )
+			.then(
+				inputdir => copydir( inputdir ).to( dest ),
+				err => { throw err }
+			);
 	}
 
 	promise = cleanup( gobbledir )

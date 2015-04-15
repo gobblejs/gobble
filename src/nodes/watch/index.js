@@ -18,7 +18,7 @@ export default function watch ( node, options ) {
 
 	task.resume = n => {
 		node = n;
-		watchTask = node.createWatchTask();
+		watchTask = node.createWatchTask( options.dest );
 
 		watchTask.on( 'info', details => task.emit( 'info', details ) );
 		watchTask.on( 'error', err => task.emit( 'error', err ) );

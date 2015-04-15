@@ -7,6 +7,7 @@ import { grab, include, map as mapTransform, move } from '../builtins';
 import { Observer, Transformer } from './index';
 import config from '../config';
 import GobbleError from '../utils/GobbleError';
+import flattenSourcemaps from '../utils/flattenSourcemaps';
 import assign from '../utils/assign';
 import warnOnce from '../utils/warnOnce';
 import compareBuffers from '../utils/compareBuffers';
@@ -39,7 +40,7 @@ export default class Node extends EventEmitter2 {
 		return build( this, options );
 	}
 
-	createWatchTask () {
+	createWatchTask ( dest ) {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
 
@@ -76,15 +77,18 @@ export default class Node extends EventEmitter2 {
 
 			buildScheduled = false;
 
-			node.ready().then( d => {
-				watchTask.emit( 'info', {
-					code: 'BUILD_COMPLETE',
-					duration: Date.now() - buildStart,
-					watch: true
-				});
+			node.ready()
+				.then( d => flattenSourcemaps( d, dest, node ) )
+				.then( d => {
+					watchTask.emit( 'info', {
+						code: 'BUILD_COMPLETE',
+						duration: Date.now() - buildStart,
+						watch: true
+					});
 
-				watchTask.emit( 'built', d );
-			}).catch( handleError );
+					watchTask.emit( 'built', d );
+				})
+				.catch( handleError );
 		}
 
 		function handleError ( e ) {
@@ -193,6 +197,12 @@ export default class Node extends EventEmitter2 {
 
 	transform ( fn, userOptions ) {
 		if ( typeof fn === 'string' ) {
+			// TODO remove this for 0.9.0
+			if ( fn === 'sorcery' ) {
+				warnOnce( 'Sourcemaps are flattened automatically as of gobble 0.8.0. You should remove the sorcery transformation from your build definition' );
+				return this;
+			}
+
 			fn = tryToLoad( fn );
 		}
 

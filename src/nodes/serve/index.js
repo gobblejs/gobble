@@ -4,6 +4,7 @@ import { Promise } from 'sander';
 import * as tinyLr from 'tiny-lr';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
+import config from '../../config';
 import GobbleError from '../../utils/GobbleError';
 import handleRequest from './handleRequest';
 
@@ -25,7 +26,7 @@ export default function serve ( node, options = {} ) {
 
 	task.resume = n => {
 		node = n;
-		watchTask = node.createWatchTask();
+		watchTask = node.createWatchTask( config.cwd );
 
 		watchTask.on( 'info', details => task.emit( 'info', details ) );
 

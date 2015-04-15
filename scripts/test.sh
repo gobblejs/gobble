@@ -16,4 +16,3 @@ mocha
 
 rm -rf .babel
 rm -rf .esperanto
-rm -rf tmp
