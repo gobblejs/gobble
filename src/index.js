@@ -1,6 +1,6 @@
 import { resolve } from 'path';
+import { Merger, Source } from './nodes';
 import * as sander from 'sander';
-import getNode from './utils/getNode';
 import config from './config';
 import { cyan } from 'chalk';
 import { isArray, isString } from './utils/is';
@@ -13,14 +13,33 @@ function fail () {
     See ${cyan( 'https://github.com/gobblejs/gobble/wiki' )} for more info.` );
 }
 
+let sources = {};
+
+function getNode ( input, options ) {
+	if ( input._gobble ) {
+		return input;
+	}
+
+	if ( isArray( input ) ) {
+		input = input.map( ensureNode );
+		return new Merger( input, options );
+	}
+
+	if ( isString( input ) ) {
+		input = resolve( config.cwd, input );
+		return sources[ input ] || ( sources[ input ] = new Source( input, options ) );
+	}
+
+	fail();
+}
+
+function ensureNode ( input ) {
+	return getNode( input );
+}
+
 function gobble ( input, options ) {
 	// gobble takes 1 or two arguments. The second must be an options object
 	if ( arguments.length > 2 || options && ( typeof options !== 'object' || options._gobble ) ) {
-		fail();
-	}
-
-	// `input` must be a gobble node, a path, or an array of nodes
-	if ( !input._gobble && !isString( input ) && !isArray( input ) ) {
 		fail();
 	}
 
