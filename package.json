@@ -23,6 +23,7 @@
     "rimraf": "~2.2.8",
     "sander": "^0.2.1",
     "sorcery": "^0.5.0",
+    "source-map-support": "^0.2.10",
     "symlink-or-copy": "^1.0.0",
     "tiny-lr": "~0.1.0"
   },

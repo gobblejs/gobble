@@ -24,7 +24,7 @@ export default class Transformer extends Node {
 		this.transformer = transformer;
 		this.options = assign( {}, options );
 
-		this.name = id || transformer.id || transformer.name || 'unknown';
+		this.name = id || this.options.id || transformer.id || transformer.name || 'unknown';
 		this.id = uid( this.name );
 
 		// Double callback style deprecated as of 0.6.x. TODO remove this eventually

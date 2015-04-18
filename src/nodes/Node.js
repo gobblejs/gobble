@@ -78,7 +78,7 @@ export default class Node extends EventEmitter2 {
 			buildScheduled = false;
 
 			node.ready()
-				.then( d => flattenSourcemaps( d, dest, node ) )
+				.then( d => flattenSourcemaps( d, dest, node ).catch( err => { watchTask.emit('error', err); return d; }) )
 				.then( d => {
 					watchTask.emit( 'info', {
 						code: 'BUILD_COMPLETE',

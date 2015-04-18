@@ -26,6 +26,7 @@ export default function ( node, options ) {
 		task.emit( 'info', {
 			code: 'BUILD_START'
 		});
+		node.start();
 
 		node.on( 'info', details => {
 			if ( details === previousDetails ) return;
@@ -34,10 +35,10 @@ export default function ( node, options ) {
 		});
 
 		return node.ready()
-			.then( inputdir => flattenSourcemaps( inputdir, dest, node ) )
+			.then( inputdir => flattenSourcemaps( inputdir, dest, node ).catch( err => { task.emit('error', err); return inputdir; }) )
 			.then(
 				inputdir => copydir( inputdir ).to( dest ),
-				err => { throw err }
+				err => { throw err; }
 			);
 	}
 
