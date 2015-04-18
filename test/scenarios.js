@@ -806,6 +806,15 @@ module.exports = function () {
 					]);
 				});
 		});
+
+		it( 'warns if you try to pass multiple nodes to gobble()', function () {
+			try {
+				var source = gobble( 'tmp/foo', 'tmp/bar' );
+				assert.ok( false );
+			} catch ( err ) {
+				assert.ok( /could not process input/.test( err.message ) );
+			}
+		});
 	});
 };
 
