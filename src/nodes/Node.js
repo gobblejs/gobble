@@ -17,6 +17,13 @@ import watch from './watch';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
 
+// TODO remove this in a future version
+function enforceCorrectArguments ( options ) {
+	if ( options !== undefined && typeof options !== 'object' ) {
+		throw new Error( 'As of gobble 0.9.0, you cannot pass multiple strings to .grab() and .moveTo(). Use path.join() instead' );
+	}
+}
+
 export default class Node extends EventEmitter2 {
 	constructor () {
 		this._gobble = true; // makes life easier for e.g. gobble-cli
@@ -109,9 +116,9 @@ export default class Node extends EventEmitter2 {
 		return watchTask;
 	}
 
-	exclude ( patterns ) {
+	exclude ( patterns, options ) {
 		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns, exclude: true });
+		return new Transformer( this, include, { patterns, exclude: true, id: options && options.id });
 	}
 
 	getChanges ( inputdir ) {
@@ -147,15 +154,15 @@ export default class Node extends EventEmitter2 {
 		return added.concat( removed ).concat( changed );
 	}
 
-	grab () {
-		const src = join.apply( null, arguments );
-		return new Transformer( this, grab, { src });
+	grab ( src, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, grab, { src, id: options && options.id });
 	}
 
 	// Built-in transformers
-	include ( patterns ) {
+	include ( patterns, options ) {
 		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns });
+		return new Transformer( this, include, { patterns, id: options && options.id });
 	}
 
 	inspect ( target, options ) {
@@ -174,9 +181,9 @@ export default class Node extends EventEmitter2 {
 		return this.transform( fn, userOptions );
 	}
 
-	moveTo () {
-		const dest = join.apply( null, arguments );
-		return new Transformer( this, move, { dest });
+	moveTo ( dest, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, move, { dest, id: options && options.id });
 	}
 
 	observe ( fn, userOptions ) {
