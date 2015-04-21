@@ -806,6 +806,24 @@ module.exports = function () {
 					]);
 				});
 		});
+
+		it( 'errors if you try to pass multiple nodes to gobble()', function () {
+			try {
+				var source = gobble( 'tmp/foo', 'tmp/bar' );
+				assert.ok( false );
+			} catch ( err ) {
+				assert.ok( /could not process input/.test( err.message ) );
+			}
+		});
+
+		it( 'errors if an input array member is invalid', function () {
+			try {
+				var source = gobble([ 42 ]);
+				assert.ok( false );
+			} catch ( err ) {
+				assert.ok( /could not process input/.test( err.message ) );
+			}
+		});
 	});
 };
 
