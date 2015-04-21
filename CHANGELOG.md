@@ -1,9 +1,15 @@
 # Changelog
 
+## 0.9.0
+
+* BREAKING: the `.grab()` and `.moveTo()` methods take a single path (previously, they would accept multiple strings, which would be joined with `path.join()`) ([#53](https://github.com/gobblejs/gobble/issues/53))
+* The `.grab()`, `.moveTo()`, `.include()` and `.exclude()` builtin transformers accept an optional second argument, which can have an `id` property which is used for debugging
+
 ## 0.8.1
 
 * Added missing source-map-support dependency
 * Missing sourcemaps do not fail the build
+* Fix regression when building (failure to propagate information)
 
 ## 0.8.0
 
