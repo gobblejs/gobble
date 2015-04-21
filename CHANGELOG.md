@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1
+
+* Added missing source-map-support dependency
+* Missing sourcemaps do not fail the build
+
 ## 0.8.0
 
 * Sourcemaps from multiple steps are 'flattened' automatically using [sorcery](https://github.com/Rich-Harris/sorcery) ([#22](https://github.com/gobblejs/gobble/issues/22))
