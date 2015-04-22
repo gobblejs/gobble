@@ -139,4 +139,8 @@ export default class Observer extends Node {
 		this.input.stop();
 		this._active = false;
 	}
+
+	active () {
+		return this._active;
+	}
 }
