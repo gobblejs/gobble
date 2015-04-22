@@ -12,7 +12,7 @@ import { ABORTED } from '../utils/signals';
 let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
-const SOURCEMAP_COMMENT = new RegExp( `\\/\\/#\\s*${SOURCEMAPPING_URL}=([^\\r\\n]+)` );
+const SOURCEMAP_COMMENT = new RegExp( `\\/\\/#\\s*${SOURCEMAPPING_URL}=([^\\r\\n]+)`, 'g' );
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -115,7 +115,7 @@ function processResult ( result, original, src, dest ) {
 		// if a sourcemap was returned, use it
 		if ( result.map ) {
 			return {
-				code: result.code,
+				code: result.code.replace( SOURCEMAP_COMMENT, '' ),
 				map: processSourcemap( result.map, src, dest, original )
 			};
 		}
