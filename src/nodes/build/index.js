@@ -39,7 +39,8 @@ export default function ( node, options ) {
 			.then(
 				inputdir => copydir( inputdir ).to( dest ),
 				err => { throw err; }
-			);
+			)
+			.then(() => node.stop());
 	}
 
 	promise = cleanup( gobbledir )

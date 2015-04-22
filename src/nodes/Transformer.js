@@ -159,6 +159,10 @@ export default class Transformer extends Node {
 		this._active = false;
 	}
 
+	active () {
+		return this._active;
+	}
+
 	_cleanup ( latest ) {
 		const dir = join( session.config.gobbledir, this.id );
 

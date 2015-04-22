@@ -104,6 +104,10 @@ export default class Merger extends Node {
 		this._active = false;
 	}
 
+	active () {
+		return this._active;
+	}
+
 	_cleanup ( index ) {
 		const dir = join( session.config.gobbledir, this.id );
 

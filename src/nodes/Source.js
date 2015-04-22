@@ -126,6 +126,10 @@ export default class Source extends Node {
 		this._active = false;
 	}
 
+	active () {
+		return this._active;
+	}
+
 	_findCreator ( filename ) {
 		try {
 			statSync( filename );

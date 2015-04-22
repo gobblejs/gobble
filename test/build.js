@@ -1,34 +1,40 @@
 var assert = require( 'assert' ),
 	path = require( 'path' ),
 	sander = require( 'sander' ),
-
-	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) ),
-	output = path.join( __dirname, 'output' );
+	gobble = require( '../tmp' ).default;
+	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) );
 
 module.exports = function () {
 	describe( 'node.build()', function () {
 		beforeEach( function () {
-			// Clean up output dir
-			return sander.rimraf( 'output' );
+			return sander.rimraf( 'tmp' ).then( function () {
+				return sander.copydir( 'sample' ).to( 'tmp' );
+			});
 		});
 
 		afterEach( function () {
-			// Clear cache of sample build definitions
-			Object.keys( require.cache ).forEach( function ( mod ) {
-				if ( sample.test( mod ) ) {
-					delete require.cache[ mod ];
-				}
-			});
-
-			// Clean up output dir
-			return sander.rimraf( 'output' );
+			return sander.rimraf( 'tmp' );
 		});
 
-		it( 'should return a promise that fulfils on completion of build', function () {
-			return require( './sample/foo' ).build({
-				dest: output
+		it( 'should return a promise that fulfills on completion of build', function () {
+			return gobble( 'tmp/foo' ).build({
+				dest: 'tmp/output'
 			}).then( function () {
-				return sander.readFile( output, 'foo.md' ).then( function ( data ) {
+				return sander.readFile( 'tmp/output', 'foo.md' ).then( function ( data ) {
+					assert.equal( data.toString().trim(), 'foo: this is some text' );
+				});
+			});
+		});
+
+		it( 'should stop completion of build', function () {
+			var node = gobble( 'tmp/foo' );
+			var task = node.build({
+				dest: 'tmp/output'
+			});
+			return task.then( function () {
+				assert.equal(node.active(), false);
+
+				return sander.readFile( 'tmp/output', 'foo.md' ).then( function ( data ) {
 					assert.equal( data.toString().trim(), 'foo: this is some text' );
 				});
 			});
@@ -36,7 +42,7 @@ module.exports = function () {
 
 		it( 'should throw an error if no `dest` is specified', function () {
 			assert.throws( function () {
-				require( './sample/foo' ).build();
+				gobble( 'tmp/foo' ).build();
 			}, function ( err ) {
 				return err.code === 'MISSING_DEST_DIR';
 			});
