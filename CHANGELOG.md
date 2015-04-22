@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2
+
+* Unwanted `sourceMappingURL` comments are always removed from file transformer output (maps are handled by gobble) ([#58](https://github.com/gobblejs/gobble/issues/58))
+
 ## 0.9.1
 
 * Prevent build from hanging ([#56](https://github.com/gobblejs/gobble/issues/56))
