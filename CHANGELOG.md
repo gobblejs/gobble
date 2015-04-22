@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+* Prevent build from hanging ([#56](https://github.com/gobblejs/gobble/issues/56))
+
 ## 0.9.0
 
 * BREAKING: the `.grab()` and `.moveTo()` methods take a single path (previously, they would accept multiple strings, which would be joined with `path.join()`) ([#53](https://github.com/gobblejs/gobble/issues/53))
