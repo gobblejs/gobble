@@ -12,7 +12,7 @@ echo "sorcery"
 sorcery -i .esperanto -o tmp
 
 echo "mocha..."
-mocha
+mocha test/test.js
 
 rm -rf .babel
 rm -rf .esperanto
