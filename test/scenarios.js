@@ -344,7 +344,7 @@ module.exports = function () {
 		});
 
 		it( 'should deconflict automatically generated sourcemaps (#38)', function ( done ) {
-			task = gobble( 'tmp/foo' ).transform( copy ).transform( copy ).serve();
+			task = gobble( 'tmp/baz' ).transform( copy ).transform( copy ).serve();
 
 			function copy ( input ) {
 				return {
@@ -357,9 +357,10 @@ module.exports = function () {
 
 			task.on( 'error', done );
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/foo.md' )
+				request( 'http://localhost:4567/foo.js' )
 					.then( function ( body ) {
-						assert.ok( /^foo: this is some text/.test( body ) );
+						var expectedStart = "console.log( 'foo.js' )";
+						assert.equal( body.substr( 0, expectedStart.length ), expectedStart );
 						done();
 					})
 					.catch( done );
@@ -367,7 +368,7 @@ module.exports = function () {
 		});
 
 		it( 'populates auto-generated sourcemaps with the correct sourcesContent', function ( done ) {
-			task = gobble( 'tmp/foo' ).transform( copy ).serve();
+			task = gobble( 'tmp/baz' ).transform( copy ).serve();
 
 			function copy ( input ) {
 				return {
@@ -381,11 +382,11 @@ module.exports = function () {
 
 			task.on( 'error', done );
 			task.on( 'built', function () {
-				request( 'http://localhost:4567/foo.md' ).then( function ( body ) {
+				request( 'http://localhost:4567/foo.js' ).then( function ( body ) {
 					var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-					assert.equal( sourceMappingURL, 'foo.md.map' );
-					request( 'http://localhost:4567/foo.md.map' ).then( JSON.parse ).then( function ( map ) {
-						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+					assert.equal( sourceMappingURL, 'foo.js.map' );
+					request( 'http://localhost:4567/foo.js.map' ).then( JSON.parse ).then( function ( map ) {
+						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/baz/foo.js' ).toString() ] );
 						done();
 					}).catch( done );
 				});
@@ -393,7 +394,7 @@ module.exports = function () {
 		});
 
 		it( 'fixes inline sourcemaps (#45)', function () {
-			var source = gobble( 'tmp/foo' );
+			var source = gobble( 'tmp/baz' );
 
 			return source.transform( function ( input ) {
 				return input + '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + btoa( JSON.stringify({ mappings: 'AAAA', names: [] }) );
@@ -401,20 +402,20 @@ module.exports = function () {
 				dest: 'tmp/output'
 			}).then( function () {
 				return Promise.all([
-					sander.readFile( 'tmp/output/foo.md' )
+					sander.readFile( 'tmp/output/foo.js' )
 						.then( String )
 						.then( function ( body ) {
 							var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-							assert.equal( sourceMappingURL, 'foo.md.map' );
+							assert.equal( sourceMappingURL, 'foo.js.map' );
 						}),
 
-					sander.readFile( 'tmp/output/foo.md.map' )
+					sander.readFile( 'tmp/output/foo.js.map' )
 						.then( String )
 						.then( JSON.parse )
 						.then( function ( map ) {
-							assert.ok( /foo\.md$/.test( map.file ) );
-							assert.deepEqual( map.sources, ['../foo/foo.md' ] );
-							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/foo/foo.md' ).toString() ] );
+							assert.ok( /foo\.js$/.test( map.file ) );
+							assert.deepEqual( map.sources, ['../baz/foo.js' ] );
+							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/baz/foo.js' ).toString() ] );
 						})
 				]);
 			});

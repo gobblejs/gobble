@@ -1,25 +1,26 @@
-import { resolve } from 'path';
+import { extname, resolve } from 'path';
 import { lsr, Promise } from 'sander';
+import * as mapSeries from 'promise-map-series';
 import { load } from 'sorcery';
 
-export default function flattenSourcemaps ( inputdir, outputdir, node ) {
+const whitelist = { '.js': true, '.css': true };
+
+export default function flattenSourcemaps ( inputdir, outputdir, base, node, task ) {
 	return lsr( inputdir ).then( files => {
-		const promises = files
-			.filter( file => file.slice( -4 ) !== '.map' )
-			.map( file => {
-				return load( resolve( inputdir, file ), {
-					sourcemaps: node.getSourcemaps()
-				}).then( chain => {
+		const jsAndCss = files.filter( file => whitelist[ extname( file ) ] );
+		const sourcemaps = node.getSourcemaps();
+
+		return mapSeries( jsAndCss, file => {
+			return load( resolve( inputdir, file ), { sourcemaps })
+				.then( chain => {
 					if ( chain ) {
-						// overwrite in place
-						return chain.write({
-							base: outputdir
-						});
+						return chain.write( resolve( outputdir, file ), { base });
 					}
+				})
+				.catch( err => {
+					task.emit( 'error', err );
 				});
 			});
-
-		return Promise.all( promises );
 	})
 	.then( () => inputdir );
 }

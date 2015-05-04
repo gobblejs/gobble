@@ -1,6 +1,6 @@
 import { EventEmitter2 } from 'eventemitter2';
 import * as crc32 from 'buffer-crc32';
-import { lsrSync, readFileSync, rimraf } from 'sander';
+import { copydir, lsrSync, mkdir, readFileSync, rimraf } from 'sander';
 import { join, resolve } from 'path';
 import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';
@@ -16,6 +16,7 @@ import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
+import session from '../session';
 
 // TODO remove this in a future version
 function enforceCorrectArguments ( options ) {
@@ -50,6 +51,7 @@ export default class Node extends EventEmitter2 {
 	createWatchTask ( dest ) {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
+		let uid = 1;
 
 		// TODO is this the best place to handle this stuff? or is it better
 		// to pass off the info to e.g. gobble-cli?
@@ -85,15 +87,33 @@ export default class Node extends EventEmitter2 {
 			buildScheduled = false;
 
 			node.ready()
-				.then( d => flattenSourcemaps( d, dest, node ).catch( err => { watchTask.emit('error', err); return d; }) )
-				.then( d => {
+				.then( inputdir => {
+					const sourcemapProcessStart = Date.now();
+
 					watchTask.emit( 'info', {
-						code: 'BUILD_COMPLETE',
-						duration: Date.now() - buildStart,
-						watch: true
+						code: 'SOURCEMAP_PROCESS_START',
+						progressIndicator: true
 					});
 
-					watchTask.emit( 'built', d );
+					// create new directory for sourcemaps...
+					const outputdir = join( session.config.gobbledir, '.final', '' + uid++ );
+
+					return copydir( inputdir ).to( outputdir )
+						.then( () => flattenSourcemaps( inputdir, outputdir, dest, node, watchTask ) )
+						.then( () => {
+							watchTask.emit( 'info', {
+								code: 'SOURCEMAP_PROCESS_COMPLETE',
+								duration: Date.now() - sourcemapProcessStart
+							});
+
+							watchTask.emit( 'info', {
+								code: 'BUILD_COMPLETE',
+								duration: Date.now() - buildStart,
+								watch: true
+							});
+
+							watchTask.emit( 'built', outputdir );
+						});
 				})
 				.catch( handleError );
 		}

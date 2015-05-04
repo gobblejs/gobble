@@ -14,7 +14,7 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should serve to the specified port', function ( done ) {
+		it.only( 'should serve to the specified port', function ( done ) {
 			var task = require( './sample/foo' ).serve({
 				port: 6789
 			});
@@ -24,6 +24,11 @@ module.exports = function () {
 					assert.equal( body.trim(), 'foo: this is some text' );
 					task.close().then( done );
 				});
+			});
+
+			task.on( 'error', function ( err ) {
+				task.close();
+				done( err );
 			});
 		});
 

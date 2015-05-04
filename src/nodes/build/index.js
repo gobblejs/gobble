@@ -35,12 +35,11 @@ export default function ( node, options ) {
 		});
 
 		return node.ready()
-			.then( inputdir => flattenSourcemaps( inputdir, dest, node ).catch( err => { task.emit('error', err); return inputdir; }) )
-			.then(
-				inputdir => copydir( inputdir ).to( dest ),
-				err => { throw err; }
-			)
-			.then(() => node.stop());
+			.then( inputdir => {
+				return copydir( inputdir ).to( dest )
+					.then( () => flattenSourcemaps( inputdir, dest, dest, node, task ) );
+			})
+			.then( () => node.stop() ); // TODO should not need to stop...
 	}
 
 	promise = cleanup( gobbledir )
