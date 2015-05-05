@@ -14,7 +14,7 @@ module.exports = function () {
 			});
 		});
 
-		it.only( 'should serve to the specified port', function ( done ) {
+		it( 'should serve to the specified port', function ( done ) {
 			var task = require( './sample/foo' ).serve({
 				port: 6789
 			});
