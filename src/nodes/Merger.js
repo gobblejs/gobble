@@ -5,7 +5,6 @@ import Node from './Node';
 import session from '../session';
 import merge from '../file/merge';
 import uid from '../utils/uid';
-import extend from '../utils/extend';
 import { ABORTED } from '../utils/signals';
 
 export default class Merger extends Node {

@@ -1,7 +1,7 @@
 import { extname, join, resolve } from 'path';
 import * as chalk from 'chalk';
 import Queue from '../queue/Queue';
-import { link, lsr, readFile, symlinkOrCopy, writeFile, Promise } from 'sander';
+import { lsr, readFile, symlinkOrCopy, writeFile, Promise } from 'sander';
 import assign from '../utils/assign';
 import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';

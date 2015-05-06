@@ -7,7 +7,6 @@ import queue from '../queue';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import uid from '../utils/uid';
-import extend from '../utils/extend';
 import makeLog from '../utils/makeLog';
 import config from '../config';
 import warnOnce from '../utils/warnOnce';
