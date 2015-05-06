@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3
+
+* Sourcemap flattening happens in a separate final directory - fixes ([#63](https://github.com/gobblejs/gobble/issues/63))
+* Sourcemap flattening only applies to `.js` and `.css` files ([#64](https://github.com/gobblejs/gobble/issues/64))
+
 ## 0.9.2
 
 * Unwanted `sourceMappingURL` comments are always removed from file transformer output (maps are handled by gobble) ([#58](https://github.com/gobblejs/gobble/issues/58))
