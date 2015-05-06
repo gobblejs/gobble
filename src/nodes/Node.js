@@ -99,7 +99,7 @@ export default class Node extends EventEmitter2 {
 					const outputdir = join( session.config.gobbledir, '.final', '' + uid++ );
 
 					return copydir( inputdir ).to( outputdir )
-						.then( () => flattenSourcemaps( inputdir, outputdir, dest, node, watchTask ) )
+						.then( () => flattenSourcemaps( inputdir, outputdir, dest, watchTask ) )
 						.then( () => {
 							watchTask.emit( 'info', {
 								code: 'SOURCEMAP_PROCESS_COMPLETE',

@@ -5,7 +5,6 @@ import Node from './Node';
 import session from '../session';
 import merge from '../file/merge';
 import uid from '../utils/uid';
-import extend from '../utils/extend';
 import { ABORTED } from '../utils/signals';
 
 export default class Merger extends Node {
@@ -14,10 +13,6 @@ export default class Merger extends Node {
 
 		this.inputs = inputs;
 		this.id = uid( ( options && options.id ) || 'merge' );
-	}
-
-	getSourcemaps () {
-		return extend( {}, ...this.inputs.map( input => input.getSourcemaps() ) );
 	}
 
 	ready () {

@@ -281,6 +281,34 @@ module.exports = function () {
 					]);
 				});
 		});
+
+		it( 'flattens sourcemap chains across non-sourcemap-generating transform boundaries', function () {
+			var source = gobble( 'tmp/baz' );
+
+			return source
+				.transform( function ( input ) {
+					return {
+						code: input,
+						map: {
+							mappings: 'AACA',
+							names: []
+						}
+					};
+				})
+				.include( 'foo.js' )
+				.build({
+					dest: 'tmp/output'
+				}).then( function () {
+					return sander.readFile( 'tmp/output/foo.js.map' )
+						.then( String )
+						.then( JSON.parse )
+						.then( function ( map ) {
+							assert.equal( map.file, 'foo.js' );
+							assert.deepEqual( map.sources, [ '../baz/foo.js' ] );
+							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/baz/foo.js' ).toString() ] );
+						});
+				});
+		});
 	});
 };
 

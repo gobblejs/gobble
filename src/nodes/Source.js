@@ -46,10 +46,6 @@ export default class Source extends Node {
 		this.static = options && options.static;
 	}
 
-	getSourcemaps () {
-		return {};
-	}
-
 	ready () {
 		return this._ready;
 	}

@@ -5,13 +5,12 @@ import { load } from 'sorcery';
 
 const whitelist = { '.js': true, '.css': true };
 
-export default function flattenSourcemaps ( inputdir, outputdir, base, node, task ) {
+export default function flattenSourcemaps ( inputdir, outputdir, base, task ) {
 	return lsr( inputdir ).then( files => {
 		const jsAndCss = files.filter( file => whitelist[ extname( file ) ] );
-		const sourcemaps = node.getSourcemaps();
 
 		return mapSeries( jsAndCss, file => {
-			return load( resolve( inputdir, file ), { sourcemaps })
+			return load( resolve( inputdir, file ) )
 				.then( chain => {
 					if ( chain ) {
 						return chain.write( resolve( outputdir, file ), { base });

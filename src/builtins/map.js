@@ -1,8 +1,7 @@
 import { extname, join, resolve } from 'path';
 import * as chalk from 'chalk';
 import Queue from '../queue/Queue';
-import { link, lsr, readFile, writeFile, Promise } from 'sander';
-import linkFile from '../file/link';
+import { lsr, readFile, symlinkOrCopy, writeFile, Promise } from 'sander';
 import assign from '../utils/assign';
 import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';
@@ -42,13 +41,13 @@ export default function map ( inputdir, outputdir, options ) {
 				// If this mapper only accepts certain extensions, and this isn't
 				// one of them, just copy the file
 				if ( shouldSkip( options, ext, filename ) ) {
-					return link( src ).to( dest );
+					return symlinkOrCopy( src ).to( dest );
 				}
 
 				// If this file *does* fall within this transformer's remit, but
 				// hasn't changed, we just copy the cached file
 				if ( !changed[ filename ] && options.cache.hasOwnProperty( filename ) ) {
-					return useCachedTransformation( this.node, options.cache[ filename ], dest );
+					return symlinkOrCopy( options.cache[ filename ] ).to( dest );
 				}
 
 				// Otherwise, we queue up a transformation
@@ -83,16 +82,13 @@ export default function map ( inputdir, outputdir, options ) {
 								return reject( err );
 							}
 
-							const { code, map } = processResult( result, data, src, dest );
-
-							if ( map ) {
-								this.node.sourcemaps[ dest ] = map;
-							}
-
 							const codepath = resolve( this.cachedir, filename );
 
-							writeTransformedResult( code, codepath, dest )
-								.then( () => options.cache[ filename ] = { codepath, map } )
+							const { code, map } = processResult( result, data, src, dest, codepath );
+
+							writeToCacheDir( code, map, codepath, dest )
+								.then( () => symlinkOrCopy( codepath ).to( dest ) )
+								.then( () => options.cache[ filename ] = codepath )
 								.then( fulfil )
 								.catch( reject );
 						});
@@ -110,30 +106,41 @@ export default function map ( inputdir, outputdir, options ) {
 	});
 }
 
-function processResult ( result, original, src, dest ) {
+function sourceMappingURLComment ( codepath ) {
+	const ext = extname( codepath );
+	const url = encodeURI( codepath ) + '.map';
+
+	if ( ext === '.css' ) {
+		return `\n/* ${SOURCEMAPPING_URL}=${url}.map */\n`;
+	}
+
+	return `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
+}
+
+function processResult ( result, original, src, dest, codepath ) {
 	if ( typeof result === 'object' && 'code' in result ) {
 		// if a sourcemap was returned, use it
 		if ( result.map ) {
 			return {
-				code: result.code.replace( SOURCEMAP_COMMENT, '' ),
+				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath ),
 				map: processSourcemap( result.map, src, dest, original )
 			};
 		}
 
 		// otherwise we might have an inline sourcemap
 		else {
-			return processInlineSourceMap( result.code, src, dest, original );
+			return processInlineSourceMap( result.code, src, dest, original, codepath );
 		}
 	}
 
 	if ( typeof result === 'string' ) {
-		return processInlineSourceMap( result, src, dest, original );
+		return processInlineSourceMap( result, src, dest, original, codepath );
 	}
 
 	return { code: result, map: null };
 }
 
-function processInlineSourceMap ( code, src, dest, original ) {
+function processInlineSourceMap ( code, src, dest, original, codepath ) {
 	// if there's an inline sourcemap, process it
 	let match = SOURCEMAP_COMMENT.exec( code );
 	let map = null;
@@ -148,25 +155,21 @@ function processInlineSourceMap ( code, src, dest, original ) {
 		let json = atob( match[1] );
 
 		map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, '' );
+		code = code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath );
 	}
 
 	return { code, map };
 }
 
-function useCachedTransformation ( node, cached, dest ) {
-	if ( cached.map ) {
-		node.sourcemaps[ dest ] = cached.map;
+function writeToCacheDir ( code, map, codepath ) {
+	if ( map ) {
+		return Promise.all([
+			writeFile( codepath, code ),
+			writeFile( codepath + '.map', JSON.stringify( map ) )
+		]);
+	} else {
+		return writeFile( codepath, code );
 	}
-
-	return link( cached.codepath ).to( dest );
-}
-
-function writeTransformedResult ( code, codepath, dest ) {
-	return writeFile( codepath, code ).then( () =>
-		// TODO use sander.link?
-		linkFile( codepath ).to( dest )
-	);
 }
 
 function createTransformError ( original, src, filename, node ) {
