@@ -1,7 +1,6 @@
 import { dirname, sep } from 'path';
-import { lsr, mkdir, Promise } from 'sander';
+import { lsr, mkdir, symlinkOrCopy, Promise } from 'sander';
 import *  as minimatch from 'minimatch';
-import { sync as symlinkOrCopy } from 'symlink-or-copy';
 
 export default function include ( inputdir, outputdir, options ) {
 	const numPatterns = options.patterns.length;
@@ -16,11 +15,7 @@ export default function include ( inputdir, outputdir, options ) {
 		.then( files => {
 			const promises = files.map( file => {
 				return mkdir( outputdir, dirname( file ) ).then( () => {
-					const src = inputdir + sep + file;
-					const dest = outputdir + sep + file;
-
-					// TODO sander-esque symlinkOrCopy
-					symlinkOrCopy( src, dest );
+					return symlinkOrCopy( inputdir, file ).to( outputdir, file );
 				});
 			});
 

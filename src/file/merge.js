@@ -1,4 +1,4 @@
-import { resolve, sep } from 'path';
+import { dirname, resolve, sep } from 'path';
 import {
 	lstat,
 	mkdirSync,
@@ -6,12 +6,12 @@ import {
 	readdirSync,
 	realpathSync,
 	stat,
-	symlinkSync,
+	symlinkOrCopy,
+	symlinkOrCopySync,
 	unlink,
 	unlinkSync,
 	Promise
 } from 'sander';
-import symlink from './symlink';
 
 export default function () {
 	const src = resolve.apply( null, arguments );
@@ -32,19 +32,21 @@ function _merge ( src, dest ) {
 			// Suppose linked-foo/ is a symlink of foo/, and we try to copy
 			// the contents of bar/ into linked-foo/ - those files will end
 			// up in foo, which is definitely not what we want
-			return lstat( dest ).then( stats => {
-				if ( stats.isSymbolicLink() ) {
-					convertToRealDir( dest );
-				}
+			return lstat( dest )
+				.then( stats => {
+					if ( stats.isSymbolicLink() ) {
+						return convertToRealDir( dest );
+					}
+				})
+				.then( () => {
+					return readdir( src ).then( files => {
+						const promises = files.map( filename =>
+							_merge( src + sep + filename, dest + sep + filename )
+						);
 
-				return readdir( src ).then( files => {
-					const promises = files.map( filename =>
-						_merge( src + sep + filename, dest + sep + filename )
-					);
-
-					return Promise.all( promises );
+						return Promise.all( promises );
+					});
 				});
-			});
 		}
 
 		// exists, and is file - overwrite
@@ -52,10 +54,11 @@ function _merge ( src, dest ) {
 	}, link ); // <- failed to stat, means dest doesn't exist
 
 	function link () {
-		symlink( src, dest );
+		return symlinkOrCopy( src ).to( dest );
 	}
 }
 
+// TODO make this async
 function convertToRealDir ( symlinkPath ) {
 	const originalPath = realpathSync( symlinkPath );
 
@@ -63,6 +66,6 @@ function convertToRealDir ( symlinkPath ) {
 	mkdirSync( symlinkPath );
 
 	readdirSync( originalPath ).forEach( filename => {
-		symlinkSync( originalPath + sep + filename ).to( symlinkPath + sep + filename );
+		symlinkOrCopySync( originalPath, filename ).to( symlinkPath, filename );
 	});
 }
