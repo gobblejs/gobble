@@ -25,6 +25,11 @@ module.exports = function () {
 					task.close().then( done );
 				});
 			});
+
+			task.on( 'error', function ( err ) {
+				task.close();
+				done( err );
+			});
 		});
 
 		it( 'should default to port 4567', function ( done ) {
