@@ -36,10 +36,6 @@ export default class Transformer extends Node {
 		}
 	}
 
-	getSourcemaps () {
-		return extend( {}, this.input.getSourcemaps(), this.sourcemaps );
-	}
-
 	ready () {
 		let outputdir;
 		let transformation;

@@ -36,7 +36,7 @@ export default function ( node, options ) {
 		return node.ready()
 			.then( inputdir => {
 				return copydir( inputdir ).to( dest )
-					.then( () => flattenSourcemaps( inputdir, dest, dest, node, task ) );
+					.then( () => flattenSourcemaps( inputdir, dest, dest, task ) );
 			})
 			.then( () => node.stop() ); // TODO should not need to stop...
 	}

@@ -16,10 +16,6 @@ export default class Merger extends Node {
 		this.id = uid( ( options && options.id ) || 'merge' );
 	}
 
-	getSourcemaps () {
-		return extend( {}, ...this.inputs.map( input => input.getSourcemaps() ) );
-	}
-
 	ready () {
 		let aborted;
 		let index;
