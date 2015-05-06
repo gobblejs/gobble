@@ -4,8 +4,12 @@ process.chdir( __dirname );
 
 require( 'source-map-support' ).install();
 
-require( './env' )();
-require( './build' )();
-require( './serve' )();
-require( './watch' )();
-require( './scenarios' )();
+describe( 'gobble', function () {
+	require( './env' )();
+	require( './build' )();
+	require( './serve' )();
+	require( './watch' )();
+	require( './initialisation' )();
+	require( './sourcemaps' )();
+	require( './scenarios' )();
+});
