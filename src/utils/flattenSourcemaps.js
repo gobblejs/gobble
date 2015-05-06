@@ -8,10 +8,10 @@ const whitelist = { '.js': true, '.css': true };
 export default function flattenSourcemaps ( inputdir, outputdir, base, node, task ) {
 	return lsr( inputdir ).then( files => {
 		const jsAndCss = files.filter( file => whitelist[ extname( file ) ] );
-		const sourcemaps = node.getSourcemaps();
+		const sourcemaps = node.getSourcemaps(); // TODO remove this nonsense
 
 		return mapSeries( jsAndCss, file => {
-			return load( resolve( inputdir, file ), { sourcemaps })
+			return load( resolve( inputdir, file ) )
 				.then( chain => {
 					if ( chain ) {
 						return chain.write( resolve( outputdir, file ), { base });
