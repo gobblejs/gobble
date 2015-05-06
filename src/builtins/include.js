@@ -1,4 +1,4 @@
-import { dirname, sep } from 'path';
+import { dirname } from 'path';
 import { lsr, mkdir, symlinkOrCopy, Promise } from 'sander';
 import *  as minimatch from 'minimatch';
 

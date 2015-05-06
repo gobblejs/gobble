@@ -1,11 +1,69 @@
-import { join, resolve } from 'path';
-import { mkdir, readdirSync, rimrafSync } from 'sander';
+import { join, resolve, sep } from 'path';
+import {
+	lstat,
+	mkdir,
+	mkdirSync,
+	readdir,
+	readdirSync,
+	realpathSync,
+	rimrafSync,
+	stat,
+	symlinkOrCopy,
+	symlinkOrCopySync,
+	unlink,
+	unlinkSync,
+	Promise
+} from 'sander';
 import * as mapSeries from 'promise-map-series';
 import Node from './Node';
 import session from '../session';
-import merge from '../file/merge';
 import uid from '../utils/uid';
 import { ABORTED } from '../utils/signals';
+
+function mergeDirectories ( src, dest ) {
+	return stat( dest ).then( stats => {
+		if ( stats.isDirectory() ) {
+			// If it's a symlinked dir, we need to convert it to a real dir.
+			// Suppose linked-foo/ is a symlink of foo/, and we try to copy
+			// the contents of bar/ into linked-foo/ - those files will end
+			// up in foo, which is definitely not what we want
+			return lstat( dest )
+				.then( stats => {
+					if ( stats.isSymbolicLink() ) {
+						return convertToRealDir( dest );
+					}
+				})
+				.then( () => {
+					return readdir( src ).then( files => {
+						const promises = files.map( filename =>
+							mergeDirectories( src + sep + filename, dest + sep + filename )
+						);
+
+						return Promise.all( promises );
+					});
+				});
+		}
+
+		// exists, and is file - overwrite
+		return unlink( dest ).then( link );
+	}, link ); // <- failed to stat, means dest doesn't exist
+
+	function link () {
+		return symlinkOrCopy( src ).to( dest );
+	}
+}
+
+// TODO make this async
+function convertToRealDir ( symlinkPath ) {
+	const originalPath = realpathSync( symlinkPath );
+
+	unlinkSync( symlinkPath );
+	mkdirSync( symlinkPath );
+
+	readdirSync( originalPath ).forEach( filename => {
+		symlinkOrCopySync( originalPath, filename ).to( symlinkPath, filename );
+	});
+}
 
 export default class Merger extends Node {
 	constructor ( inputs, options ) {
@@ -48,7 +106,7 @@ export default class Merger extends Node {
 
 					return mapSeries( inputdirs, inputdir => {
 						if ( aborted ) throw ABORTED;
-						return merge( inputdir ).to( outputdir );
+						return mergeDirectories( inputdir, outputdir );
 					});
 				}).then( () => {
 					if ( aborted ) throw ABORTED;

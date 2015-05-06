@@ -1,5 +1,5 @@
-import merge from '../file/merge';
+import { symlinkOrCopy } from 'sander';
 
 export default function grab ( inputdir, outputdir, options ) {
-	return merge( inputdir, options.src ).to( outputdir );
+	return symlinkOrCopy( inputdir, options.src ).to( outputdir );
 }
