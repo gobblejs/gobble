@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0
+
+* Sourcemaps persist across non-sourcemap-generating transform boundaries ([#63](https://github.com/gobblejs/gobble/issues/63))
+* Internal tidy up
+
 ## 0.9.3
 
 * Sourcemap flattening happens in a separate final directory - fixes ([#63](https://github.com/gobblejs/gobble/issues/63))
