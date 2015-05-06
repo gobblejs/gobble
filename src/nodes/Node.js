@@ -1,6 +1,6 @@
 import { EventEmitter2 } from 'eventemitter2';
 import * as crc32 from 'buffer-crc32';
-import { copydir, lsrSync, mkdir, readFileSync, rimraf } from 'sander';
+import { copydir, lsrSync, readFileSync, rimraf } from 'sander';
 import { join, resolve } from 'path';
 import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';

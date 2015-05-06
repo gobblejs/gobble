@@ -1,6 +1,5 @@
 import { resolve } from 'path';
-import { copydir, lsr ,readdir, Promise } from 'sander';
-import * as sorcery from 'sorcery';
+import { copydir ,readdir } from 'sander';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
 import GobbleError from '../../utils/GobbleError';

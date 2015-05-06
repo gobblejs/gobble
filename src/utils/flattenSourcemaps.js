@@ -1,5 +1,5 @@
 import { extname, resolve } from 'path';
-import { lsr, Promise } from 'sander';
+import { lsr } from 'sander';
 import * as mapSeries from 'promise-map-series';
 import { load } from 'sorcery';
 

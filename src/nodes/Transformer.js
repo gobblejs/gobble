@@ -1,7 +1,6 @@
 import { join, resolve } from 'path';
-import * as crc32 from 'buffer-crc32';
 import * as sander from 'sander';
-import { lsrSync, mkdir, readFileSync, readdirSync, rimrafSync } from 'sander';
+import { mkdir, readdirSync, rimrafSync } from 'sander';
 import Node from './Node';
 import session from '../session';
 import queue from '../queue';
