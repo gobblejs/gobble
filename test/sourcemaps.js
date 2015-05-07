@@ -309,6 +309,48 @@ module.exports = function () {
 						});
 				});
 		});
+
+		it( 'flattens CSS sourcemaps correctly', function () {
+			var source = gobble( 'tmp/css' );
+
+			// fake gobble-sass output
+			var css = 'body {\n  color: #c80000; }\n\n/*# sourceMappingURL=main.css.map */';
+			var cssMap = {
+				"version":3,
+				"file":"main.css",
+				"sources":[path.resolve("tmp/css/main.scss")],
+				"sourcesContent":[
+					"$red: rgba(200,0,0,1);\n\nbody {\n\tcolor: $red;\n}"
+				],
+				"names":[],
+				"mappings":"AAEA;EACC,AAHK"
+			};
+
+			return source
+				.transform( function ( inputdir, outputdir, options, callback ) {
+					sander.writeFileSync( outputdir, 'main.css', css );
+					sander.writeFileSync( outputdir, 'main.css.map', JSON.stringify( cssMap ) );
+					callback();
+				})
+				.build({
+					dest: 'tmp/output'
+				})
+				.then( function () {
+					// ignore differences in newlines
+					var actualCss = sander.readFileSync( 'tmp/output/main.css' ).toString().replace( /\n/g, '' );
+					var expectedCss = css.replace( /\n/g, '' );
+					assert.equal( actualCss, expectedCss );
+
+					var actualMap = sander.readFileSync( 'tmp/output/main.css.map' ).toString().replace( /\n/g, '' );
+					actualMap = JSON.parse( actualMap );
+
+					actualMap.sources = actualMap.sources.map( function ( source ) {
+						return path.resolve( 'tmp/output', source );
+					});
+
+					assert.deepEqual( actualMap, cssMap );
+				});
+		});
 	});
 };
 

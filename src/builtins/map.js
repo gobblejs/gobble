@@ -11,7 +11,10 @@ import { ABORTED } from '../utils/signals';
 let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
-const SOURCEMAP_COMMENT = new RegExp( `\\/\\/#\\s*${SOURCEMAPPING_URL}=([^\\r\\n]+)`, 'g' );
+const SOURCEMAP_COMMENT = new RegExp( `\n*(?:` +
+	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+)|` +      // js
+	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+)\\s\\+\\/)` + // css
+`\\s*$`, 'g' );
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -111,7 +114,7 @@ function sourceMappingURLComment ( codepath ) {
 	const url = encodeURI( codepath ) + '.map';
 
 	if ( ext === '.css' ) {
-		return `\n/* ${SOURCEMAPPING_URL}=${url}.map */\n`;
+		return `\n/*# ${SOURCEMAPPING_URL}=${url} */\n`;
 	}
 
 	return `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
