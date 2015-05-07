@@ -23,7 +23,7 @@ export default function watch ( node, options ) {
 		watchTask.on( 'info', details => task.emit( 'info', details ) );
 		watchTask.on( 'error', err => task.emit( 'error', err ) );
 
-		watchTask.on( 'built', outputdir => {
+		watchTask.on( 'built', { dir, duration } => {
 			const dest = options.dest;
 
 			rimraf( dest )

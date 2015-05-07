@@ -87,7 +87,13 @@ export default class Node extends EventEmitter2 {
 			buildScheduled = false;
 
 			node.ready()
-				.then( inputdir => {
+				.then( outputdir => {
+					watchTask.emit( 'built', {
+						dir: outputdir,
+						duration: Date.now() - buildStart
+					});
+				})
+				/*.then( inputdir => {
 					const sourcemapProcessStart = Date.now();
 
 					watchTask.emit( 'info', {
@@ -114,7 +120,7 @@ export default class Node extends EventEmitter2 {
 
 							watchTask.emit( 'built', outputdir );
 						});
-				})
+				})*/
 				.catch( handleError );
 		}
 

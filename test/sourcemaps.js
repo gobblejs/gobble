@@ -276,7 +276,7 @@ module.exports = function () {
 
 						sander.lsr( 'tmp/output' )
 							.then( function ( files ) {
-								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ]);
+								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ].sort() );
 							})
 					]);
 				});
@@ -308,6 +308,39 @@ module.exports = function () {
 							assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/baz/foo.js' ).toString() ] );
 						});
 				});
+		});
+
+		it( 'generates sourcemaps lazily, on-demand, when serving', function ( done ) {
+			var source = gobble( 'tmp/baz' );
+
+			task = source
+				.transform( function ( input ) {
+					return {
+						code: input,
+						map: {
+							mappings: 'AACA',
+							names: []
+						}
+					};
+				})
+				.serve()
+
+			task.on( 'error', done );
+
+			task.once( 'ready', function () {
+				console.log( 'READY' );
+				// map file should not exist yet
+				assert.deepEqual( sander.readdirSync( '.gobble/.final/1' ), [ 'foo.js' ] );
+
+				request( 'http://localhost:4567/foo.js.map' )
+					.then( JSON.parse )
+					.then( function ( map ) {
+						console.log( 'map', map );
+						assert.ok( false );
+					})
+					.then( done )
+					.catch( done );
+			});
 		});
 	});
 };
