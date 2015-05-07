@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1
+
+* CSS sourcemaps are flattened correctly
+
 ## 0.10.0
 
 * Sourcemaps persist across non-sourcemap-generating transform boundaries ([#63](https://github.com/gobblejs/gobble/issues/63))
