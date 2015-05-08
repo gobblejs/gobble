@@ -2,6 +2,7 @@ import { copydir, rimraf, Promise } from 'sander';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
 import GobbleError from '../../utils/GobbleError';
+import flattenSourcemaps from '../../utils/flattenSourcemaps';
 
 export default function watch ( node, options ) {
 	if ( !options || !options.dest ) {
@@ -23,11 +24,35 @@ export default function watch ( node, options ) {
 		watchTask.on( 'info', details => task.emit( 'info', details ) );
 		watchTask.on( 'error', err => task.emit( 'error', err ) );
 
-		watchTask.on( 'built', { dir, duration } => {
+		let buildStart;
+		watchTask.on( 'build:start', () => buildStart = Date.now() );
+
+		watchTask.on( 'build:end', dir => {
 			const dest = options.dest;
 
 			rimraf( dest )
-				.then( () => copydir( outputdir ).to( dest ) )
+				.then( () => copydir( dir ).to( dest ) )
+				.then( () => {
+					const sourcemapProcessStart = Date.now();
+
+					task.emit( 'info', {
+						code: 'SOURCEMAP_PROCESS_START',
+						progressIndicator: true
+					});
+
+					return flattenSourcemaps( dir, dest, dest, task ).then( () => {
+						task.emit( 'info', {
+							code: 'SOURCEMAP_PROCESS_COMPLETE',
+							duration: Date.now() - sourcemapProcessStart
+						});
+
+						task.emit( 'info', {
+							code: 'BUILD_COMPLETE',
+							duration: Date.now() - buildStart,
+							watch: true
+						});
+					});
+				})
 				.then( () => task.emit( 'built', dest ) )
 				.catch( err => task.emit( 'error', err ) );
 		});

@@ -53,8 +53,6 @@ export default class Transformer extends Node {
 				transformation.aborted = true;
 			};
 
-			this.sourcemaps = {};
-
 			outputdir = resolve( session.config.gobbledir, this.id, '' + this.counter++ );
 
 			this._ready = this.input.ready().then( inputdir => {

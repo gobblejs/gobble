@@ -1,11 +1,12 @@
-import { join } from 'path';
+import { extname, join } from 'path';
 import { parse } from 'url';
 import { stat, Promise } from 'sander';
 import serveFile from './serveFile';
 import serveDir from './serveDir';
+import serveSourcemap from './serveSourcemap';
 import serveError from './serveError';
 
-export default function handleRequest ( srcDir, error, request, response ) {
+export default function handleRequest ( srcDir, error, sourcemapPromises, request, response ) {
 	const parsedUrl = parse( request.url );
 	const pathname = parsedUrl.pathname;
 
@@ -28,6 +29,11 @@ export default function handleRequest ( srcDir, error, request, response ) {
 	}
 
 	filepath = join( srcDir, pathname );
+
+	if ( extname( filepath ) === '.map' ) {
+		return serveSourcemap( filepath, sourcemapPromises, request, response )
+			.catch( err => serveError( err, request, response ) );
+	}
 
 	return stat( filepath ).then( stats => {
 		if ( stats.isDirectory() ) {

@@ -82,45 +82,14 @@ export default class Node extends EventEmitter2 {
 		node.on( 'error', handleError );
 
 		function build () {
-			const buildStart = Date.now();
-
 			buildScheduled = false;
+
+			watchTask.emit( 'build:start' );
 
 			node.ready()
 				.then( outputdir => {
-					watchTask.emit( 'built', {
-						dir: outputdir,
-						duration: Date.now() - buildStart
-					});
+					watchTask.emit( 'build:end', outputdir );
 				})
-				/*.then( inputdir => {
-					const sourcemapProcessStart = Date.now();
-
-					watchTask.emit( 'info', {
-						code: 'SOURCEMAP_PROCESS_START',
-						progressIndicator: true
-					});
-
-					// create new directory for sourcemaps...
-					const outputdir = join( session.config.gobbledir, '.final', '' + uid++ );
-
-					return copydir( inputdir ).to( outputdir )
-						.then( () => flattenSourcemaps( inputdir, outputdir, dest, watchTask ) )
-						.then( () => {
-							watchTask.emit( 'info', {
-								code: 'SOURCEMAP_PROCESS_COMPLETE',
-								duration: Date.now() - sourcemapProcessStart
-							});
-
-							watchTask.emit( 'info', {
-								code: 'BUILD_COMPLETE',
-								duration: Date.now() - buildStart,
-								watch: true
-							});
-
-							watchTask.emit( 'built', outputdir );
-						});
-				})*/
 				.catch( handleError );
 		}
 
@@ -137,7 +106,7 @@ export default class Node extends EventEmitter2 {
 		watchTask.close = () => node.stop();
 
 		this.start();
-		build();
+		process.nextTick( build );
 
 		return watchTask;
 	}

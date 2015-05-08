@@ -7,14 +7,7 @@ import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
-
-let SOURCEMAPPING_URL = 'sourceMa';
-SOURCEMAPPING_URL += 'ppingURL';
-
-const SOURCEMAP_COMMENT = new RegExp( `\n*(?:` +
-	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+)|` +      // js
-	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+)\\s\\+\\/)` + // css
-`\\s*$`, 'g' );
+import { getSourcemapComment, SOURCEMAPPING_URL, SOURCEMAP_COMMENT } from '../utils/sourcemap';
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -125,7 +118,7 @@ function processResult ( result, original, src, dest, codepath ) {
 		// if a sourcemap was returned, use it
 		if ( result.map ) {
 			return {
-				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath ),
+				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( codepath ) ),
 				map: processSourcemap( result.map, src, dest, original )
 			};
 		}
@@ -158,7 +151,7 @@ function processInlineSourceMap ( code, src, dest, original, codepath ) {
 		let json = atob( match[1] );
 
 		map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath );
+		code = code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( codepath ) );
 	}
 
 	return { code, map };
