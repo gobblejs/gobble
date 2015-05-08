@@ -1,13 +1,12 @@
 import { EventEmitter2 } from 'eventemitter2';
 import * as crc32 from 'buffer-crc32';
-import { copydir, lsrSync, readFileSync, rimraf } from 'sander';
-import { join, resolve } from 'path';
+import { lsrSync, readFileSync, rimraf } from 'sander';
+import { resolve } from 'path';
 import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';
 import { Observer, Transformer } from './index';
 import config from '../config';
 import GobbleError from '../utils/GobbleError';
-import flattenSourcemaps from '../utils/flattenSourcemaps';
 import assign from '../utils/assign';
 import warnOnce from '../utils/warnOnce';
 import compareBuffers from '../utils/compareBuffers';
@@ -16,7 +15,6 @@ import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
-import session from '../session';
 
 // TODO remove this in a future version
 function enforceCorrectArguments ( options ) {
@@ -48,10 +46,9 @@ export default class Node extends EventEmitter2 {
 		return build( this, options );
 	}
 
-	createWatchTask ( dest ) {
+	createWatchTask () {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
-		let uid = 1;
 
 		// TODO is this the best place to handle this stuff? or is it better
 		// to pass off the info to e.g. gobble-cli?

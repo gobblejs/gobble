@@ -7,7 +7,7 @@ import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
-import { getSourcemapComment, SOURCEMAPPING_URL, SOURCEMAP_COMMENT } from '../utils/sourcemap';
+import { getSourcemapComment, SOURCEMAP_COMMENT } from '../utils/sourcemap';
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -100,17 +100,6 @@ export default function map ( inputdir, outputdir, options ) {
 			fulfil();
 		}, reject );
 	});
-}
-
-function sourceMappingURLComment ( codepath ) {
-	const ext = extname( codepath );
-	const url = encodeURI( codepath ) + '.map';
-
-	if ( ext === '.css' ) {
-		return `\n/*# ${SOURCEMAPPING_URL}=${url} */\n`;
-	}
-
-	return `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
 }
 
 function processResult ( result, original, src, dest, codepath ) {
@@ -226,8 +215,4 @@ function shouldSkip ( options, ext, filename ) {
 
 function atob ( base64 ) {
 	return new Buffer( base64, 'base64' ).toString( 'utf8' );
-}
-
-function btoa ( str ) {
-	return new Buffer( str ).toString( 'base64' );
 }
