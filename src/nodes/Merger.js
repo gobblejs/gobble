@@ -104,35 +104,34 @@ export default class Merger extends Node {
 				let start;
 				let inputdirs = [];
 
-				return mapSeries( this.inputs, function ( input, i ) {
-					if ( aborted ) throw ABORTED;
-					return input.ready().then( inputdir => inputdirs[i] = inputdir );
-				}).then( () => {
-					start = Date.now();
+				return Promise.all( this.inputs.map( x => x.ready() ) )
+					.then( inputdirs => {
+						start = Date.now();
 
-					this.emit( 'info', {
-						code: 'MERGE_START',
-						id: this.id,
-						progressIndicator: true
-					});
+						this.emit( 'info', {
+							code: 'MERGE_START',
+							id: this.id,
+							progressIndicator: true
+						});
 
-					return mapSeries( inputdirs, inputdir => {
+						return mapSeries( inputdirs, inputdir => {
+							if ( aborted ) throw ABORTED;
+							return mergeDirectories( inputdir, outputdir );
+						});
+					})
+					.then( () => {
 						if ( aborted ) throw ABORTED;
-						return mergeDirectories( inputdir, outputdir );
+
+						this._cleanup( index );
+
+						this.emit( 'info', {
+							code: 'MERGE_COMPLETE',
+							id: this.id,
+							duration: Date.now() - start
+						});
+
+						return outputdir;
 					});
-				}).then( () => {
-					if ( aborted ) throw ABORTED;
-
-					this._cleanup( index );
-
-					this.emit( 'info', {
-						code: 'MERGE_COMPLETE',
-						id: this.id,
-						duration: Date.now() - start
-					});
-
-					return outputdir;
-				});
 			});
 		}
 
