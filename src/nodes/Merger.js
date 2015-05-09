@@ -104,7 +104,7 @@ export default class Merger extends Node {
 				let start;
 				let inputdirs = [];
 
-				return Promise.all( this.inputs.map( x => x.ready() ) )
+				return mapSeries( this.inputs, x => x.ready() )
 					.then( inputdirs => {
 						start = Date.now();
 

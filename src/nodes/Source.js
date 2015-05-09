@@ -52,12 +52,6 @@ export default class Source extends Node {
 			this._ready = queue.add( ( fulfil, reject ) => {
 				const start = Date.now();
 
-				this.emit( 'info', {
-					code: 'CHECKSUM_START',
-					progressIndicator: true,
-					dir: this.dir
-				});
-
 				this._makeReady();
 
 				lsr( this.dir )
@@ -70,11 +64,12 @@ export default class Source extends Node {
 							this.checksumByFile[ absolutePath ] = checksum;
 							this.fileByChecksum[ checksum ] = absolutePath;
 						});
-						this.emit( 'info', {
-							code: 'CHECKSUM_COMPLETE',
-							duration: Date.now() - start,
-							dir: this.dir
-						});
+
+						// If
+						const duration = Date.now() - start;
+						if ( duration > 200 ) {
+							this.emit( 'info', `the ${this.dir} directory took ${duration}ms to initialise - consider excluding unnecessary files from the build` );
+						}
 					})
 					.then( () => fulfil( this.dir ) )
 					.catch( reject );
