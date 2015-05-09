@@ -1,13 +1,12 @@
 import { EventEmitter2 } from 'eventemitter2';
 import * as crc32 from 'buffer-crc32';
-import { copydir, lsrSync, readFileSync, rimraf } from 'sander';
-import { join, resolve } from 'path';
+import { lsrSync, readFileSync, rimraf } from 'sander';
+import { resolve } from 'path';
 import * as requireRelative from 'require-relative';
 import { grab, include, map as mapTransform, move } from '../builtins';
 import { Observer, Transformer } from './index';
 import config from '../config';
 import GobbleError from '../utils/GobbleError';
-import flattenSourcemaps from '../utils/flattenSourcemaps';
 import assign from '../utils/assign';
 import warnOnce from '../utils/warnOnce';
 import compareBuffers from '../utils/compareBuffers';
@@ -16,7 +15,6 @@ import build from './build';
 import watch from './watch';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
-import session from '../session';
 
 // TODO remove this in a future version
 function enforceCorrectArguments ( options ) {
@@ -48,10 +46,9 @@ export default class Node extends EventEmitter2 {
 		return build( this, options );
 	}
 
-	createWatchTask ( dest ) {
+	createWatchTask () {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
-		let uid = 1;
 
 		// TODO is this the best place to handle this stuff? or is it better
 		// to pass off the info to e.g. gobble-cli?
@@ -82,38 +79,13 @@ export default class Node extends EventEmitter2 {
 		node.on( 'error', handleError );
 
 		function build () {
-			const buildStart = Date.now();
-
 			buildScheduled = false;
 
+			watchTask.emit( 'build:start' );
+
 			node.ready()
-				.then( inputdir => {
-					const sourcemapProcessStart = Date.now();
-
-					watchTask.emit( 'info', {
-						code: 'SOURCEMAP_PROCESS_START',
-						progressIndicator: true
-					});
-
-					// create new directory for sourcemaps...
-					const outputdir = join( session.config.gobbledir, '.final', '' + uid++ );
-
-					return copydir( inputdir ).to( outputdir )
-						.then( () => flattenSourcemaps( inputdir, outputdir, dest, watchTask ) )
-						.then( () => {
-							watchTask.emit( 'info', {
-								code: 'SOURCEMAP_PROCESS_COMPLETE',
-								duration: Date.now() - sourcemapProcessStart
-							});
-
-							watchTask.emit( 'info', {
-								code: 'BUILD_COMPLETE',
-								duration: Date.now() - buildStart,
-								watch: true
-							});
-
-							watchTask.emit( 'built', outputdir );
-						});
+				.then( outputdir => {
+					watchTask.emit( 'build:end', outputdir );
 				})
 				.catch( handleError );
 		}
@@ -131,7 +103,7 @@ export default class Node extends EventEmitter2 {
 		watchTask.close = () => node.stop();
 
 		this.start();
-		build();
+		process.nextTick( build );
 
 		return watchTask;
 	}

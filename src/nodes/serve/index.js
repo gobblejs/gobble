@@ -4,7 +4,6 @@ import { Promise } from 'sander';
 import * as tinyLr from 'tiny-lr';
 import cleanup from '../../utils/cleanup';
 import session from '../../session';
-import config from '../../config';
 import GobbleError from '../../utils/GobbleError';
 import handleRequest from './handleRequest';
 
@@ -16,6 +15,7 @@ export default function serve ( node, options = {} ) {
 	let buildStarted = Date.now();
 	let watchTask;
 	let srcDir;
+	let sourcemapPromises;
 	let server;
 	let serverReady;
 	let lrServer;
@@ -26,7 +26,7 @@ export default function serve ( node, options = {} ) {
 
 	task.resume = n => {
 		node = n;
-		watchTask = node.createWatchTask( config.cwd );
+		watchTask = node.createWatchTask();
 
 		watchTask.on( 'info', details => task.emit( 'info', details ) );
 
@@ -35,13 +35,22 @@ export default function serve ( node, options = {} ) {
 			task.emit( 'error', err );
 		});
 
-		watchTask.on( 'built', d => {
+		let buildStart;
+		watchTask.on( 'build:start', () => buildStart = Date.now() );
+
+		watchTask.on( 'build:end', dir => {
 			error = null;
-			srcDir = d;
+			sourcemapPromises = {};
+			srcDir = dir;
 
 			built = true;
 
 			task.emit( 'built' );
+
+			task.emit( 'info', {
+				code: 'BUILD_COMPLETE',
+				duration: Date.now() - buildStart
+			});
 
 			if ( !firedReadyEvent && serverReady ) {
 				task.emit( 'ready' );
@@ -114,7 +123,7 @@ export default function serve ( node, options = {} ) {
 	});
 
 	server.on( 'request', ( request, response ) => {
-		handleRequest( srcDir, error, request, response )
+		handleRequest( srcDir, error, sourcemapPromises, request, response )
 			.catch( err => task.emit( 'error', err ) );
 	});
 

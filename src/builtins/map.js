@@ -7,14 +7,7 @@ import config from '../config';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
-
-let SOURCEMAPPING_URL = 'sourceMa';
-SOURCEMAPPING_URL += 'ppingURL';
-
-const SOURCEMAP_COMMENT = new RegExp( `\n*(?:` +
-	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+)|` +      // js
-	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+)\\s\\+\\/)` + // css
-`\\s*$`, 'g' );
+import { getSourcemapComment, SOURCEMAP_COMMENT } from '../utils/sourcemap';
 
 export default function map ( inputdir, outputdir, options ) {
 	let changed = {};
@@ -109,23 +102,12 @@ export default function map ( inputdir, outputdir, options ) {
 	});
 }
 
-function sourceMappingURLComment ( codepath ) {
-	const ext = extname( codepath );
-	const url = encodeURI( codepath ) + '.map';
-
-	if ( ext === '.css' ) {
-		return `\n/*# ${SOURCEMAPPING_URL}=${url} */\n`;
-	}
-
-	return `\n//# ${SOURCEMAPPING_URL}=${url}\n`;
-}
-
 function processResult ( result, original, src, dest, codepath ) {
 	if ( typeof result === 'object' && 'code' in result ) {
 		// if a sourcemap was returned, use it
 		if ( result.map ) {
 			return {
-				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath ),
+				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( codepath ) ),
 				map: processSourcemap( result.map, src, dest, original )
 			};
 		}
@@ -158,7 +140,7 @@ function processInlineSourceMap ( code, src, dest, original, codepath ) {
 		let json = atob( match[1] );
 
 		map = processSourcemap( json, src, dest, original );
-		code = code.replace( SOURCEMAP_COMMENT, '' ) + sourceMappingURLComment( codepath );
+		code = code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( codepath ) );
 	}
 
 	return { code, map };
@@ -233,8 +215,4 @@ function shouldSkip ( options, ext, filename ) {
 
 function atob ( base64 ) {
 	return new Buffer( base64, 'base64' ).toString( 'utf8' );
-}
-
-function btoa ( str ) {
-	return new Buffer( str ).toString( 'base64' );
 }

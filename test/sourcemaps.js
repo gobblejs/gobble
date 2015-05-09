@@ -81,8 +81,7 @@ module.exports = function () {
 			task.on( 'error', done );
 			task.on( 'built', function () {
 				request( 'http://localhost:4567/foo.js' ).then( function ( body ) {
-					var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-					assert.equal( sourceMappingURL, 'foo.js.map' );
+					assert.equal( extractSourceMappingURL( body ), 'foo.js.map' );
 					request( 'http://localhost:4567/foo.js.map' ).then( JSON.parse ).then( function ( map ) {
 						assert.deepEqual( map.sourcesContent, [ sander.readFileSync( 'tmp/baz/foo.js' ).toString() ] );
 						done();
@@ -103,8 +102,7 @@ module.exports = function () {
 					sander.readFile( 'tmp/output/foo.js' )
 						.then( String )
 						.then( function ( body ) {
-							var sourceMappingURL = /sourceMappingURL=(.+)/.exec( body )[1];
-							assert.equal( sourceMappingURL, 'foo.js.map' );
+							assert.equal( extractSourceMappingURL( body ), 'foo.js.map' );
 						}),
 
 					sander.readFile( 'tmp/output/foo.js.map' )
@@ -205,7 +203,7 @@ module.exports = function () {
 				return sander.readFile( 'tmp/output/file with spaces.js' )
 					.then( String )
 					.then( function ( contents ) {
-						var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( contents )[1];
+						var sourceMappingURL = extractSourceMappingURL( contents );
 						assert.ok( !/\s/.test( sourceMappingURL ) );
 					});
 			});
@@ -223,8 +221,7 @@ module.exports = function () {
 				Promise.all([
 					request( 'http://localhost:4567/app.min.js' )
 						.then( function ( body ) {
-							var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( body )[1];
-							assert.equal( sourceMappingURL, 'app.min.js.map' );
+							assert.equal( extractSourceMappingURL( body ), 'app.min.js.map' );
 						}),
 
 					request( 'http://localhost:4567/app.min.js.map' )
@@ -258,8 +255,7 @@ module.exports = function () {
 						sander.readFile( 'tmp/output/app.min.js' )
 							.then( String )
 							.then( function ( content ) {
-								var sourceMappingURL = /sourceMappingURL=([^\r\n]+)/.exec( content )[1];
-								assert.equal( sourceMappingURL, 'app.min.js.map' );
+								assert.equal( extractSourceMappingURL( content ), 'app.min.js.map' );
 							}),
 
 						sander.readFile( 'tmp/output/app.min.js.map' )
@@ -276,7 +272,7 @@ module.exports = function () {
 
 						sander.lsr( 'tmp/output' )
 							.then( function ( files ) {
-								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ]);
+								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ].sort() );
 							})
 					]);
 				});
@@ -351,9 +347,58 @@ module.exports = function () {
 					assert.deepEqual( actualMap, cssMap );
 				});
 		});
+
+		it( 'generates sourcemaps lazily, on-demand, when serving', function ( done ) {
+			var source = gobble( 'tmp/baz' );
+
+			task = source
+				.transform( function ( input ) {
+					return {
+						code: input,
+						map: {
+							mappings: 'AACA',
+							names: []
+						}
+					};
+				})
+				.serve();
+
+			task.on( 'error', done );
+
+			task.once( 'ready', function () {
+				// map file should not exist on disk
+				// TODO this is a really hacky way of testing
+				var dir = sander.readdirSync( '.gobble' )[0];
+				var source = sander.readFileSync( '.gobble', dir, '.cache', 'foo.js' ).toString();
+				var map = sander.readFileSync( '.gobble', dir, '.cache', 'foo.js.map' ).toString();
+
+				// sourceMappingURL on disk should be an absolute path...
+				assert.ok( /\.gobble/.test( extractSourceMappingURL( source ) ) );
+
+				request( 'http://localhost:4567/foo.js' )
+					.then( function ( servedSource ) {
+						// ...but should be relative when served
+						assert.equal( extractSourceMappingURL( servedSource ), 'foo.js.map' );
+					})
+					.then( function () {
+						return request( 'http://localhost:4567/foo.js.map' )
+							.then( JSON.parse )
+							.then( function ( map ) {
+								assert.equal( map.file, 'foo.js' );
+							});
+					})
+					.then( done )
+					.catch( done );
+			});
+		});
 	});
 };
 
 function btoa ( str ) {
 	return new Buffer( str ).toString( 'base64' );
+}
+
+function extractSourceMappingURL ( data ) {
+	var match = /sourceMappingURL=([^\r\n]+)/.exec( data );
+	return match && match[1];
 }
