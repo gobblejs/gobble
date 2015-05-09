@@ -145,7 +145,7 @@ module.exports = function () {
 
 			task.once( 'built', function () {
 				task.once( 'built', function () {
-					var content = sander.readFileSync( 'tmp/output/baz' );
+					var content = sander.readFileSync( 'tmp/output/baz' ).toString();
 					assert.equal( content, 'step2' );
 					done();
 				});
@@ -158,11 +158,7 @@ module.exports = function () {
 				});
 			});
 
-			task.on( 'error', function ( err ) {
-				setTimeout( function () {
-					throw err;
-				});
-			});
+			task.on( 'error', done );
 		});
 
 		it( 'does not use non-existent sourcemap files when reusing cached file transformer results', function ( done ) {
@@ -272,7 +268,7 @@ module.exports = function () {
 
 						sander.lsr( 'tmp/output' )
 							.then( function ( files ) {
-								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ].sort() );
+								assert.deepEqual( files.sort(), [ 'app.min.js', 'app.min.js.map' ].sort() );
 							})
 					]);
 				});
