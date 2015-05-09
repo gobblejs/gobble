@@ -71,6 +71,18 @@ export default class Merger extends Node {
 
 		this.inputs = inputs;
 		this.id = uid( ( options && options.id ) || 'merge' );
+
+		this._oninvalidate = changes => {
+			this._abort( changes );
+			this.emit( 'invalidate', changes );
+		};
+
+		this._oninfo = details => this.emit( 'info', details );
+
+		this.inputs.forEach( input => {
+			input.on( 'invalidate', this._oninvalidate );
+			input.on( 'info', this._oninfo );
+		});
 	}
 
 	ready () {
@@ -127,38 +139,20 @@ export default class Merger extends Node {
 		return this._ready;
 	}
 
-	start () {
-		if ( this._active ) return;
-		this._active = true;
-
-		this._oninvalidate = changes => {
-			this._abort( changes );
-			this.emit( 'invalidate', changes );
-		};
-
-		this._oninfo = details => this.emit( 'info', details );
-
-		this.inputs.forEach( input => {
-			input.on( 'invalidate', this._oninvalidate );
-			input.on( 'info', this._oninfo );
-
-			input.start();
-		});
+	startFileWatcher () {
+		this.inputs.forEach( input => input.startFileWatcher() );
 	}
 
-	stop () {
+	stopFileWatcher () {
+		this.inputs.forEach( input => input.stopFileWatcher() );
+	}
+
+	teardown () {
 		this.inputs.forEach( input => {
 			input.off( 'invalidate', this._oninvalidate );
 			input.off( 'info', this._oninfo );
-
-			input.stop();
+			input.teardown();
 		});
-
-		this._active = false;
-	}
-
-	active () {
-		return this._active;
 	}
 
 	_cleanup ( index ) {

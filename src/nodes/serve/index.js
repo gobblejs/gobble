@@ -66,8 +66,9 @@ export default function serve ( node, options = {} ) {
 	};
 
 	task.close = () => {
-		if ( node ) {
-			node.stop();
+		if ( watchTask ) {
+			watchTask.close();
+			node.teardown();
 		}
 
 		return new Promise( fulfil => {
@@ -82,8 +83,9 @@ export default function serve ( node, options = {} ) {
 
 		buildStarted = Date.now();
 
-		if ( node ) {
-			node.stop();
+		if ( watchTask ) {
+			watchTask.close();
+			node.teardown();
 		}
 
 		node = null;

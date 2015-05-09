@@ -50,7 +50,7 @@ export default class Source extends Node {
 		return this._ready;
 	}
 
-	start () {
+	startFileWatcher () {
 		if ( this._active || this.static ) {
 			return;
 		}
@@ -110,7 +110,7 @@ export default class Source extends Node {
 		}
 	}
 
-	stop () {
+	stopFileWatcher () {
 		if ( this._watcher ) {
 			this._watcher.close();
 		}
@@ -122,8 +122,8 @@ export default class Source extends Node {
 		this._active = false;
 	}
 
-	active () {
-		return this._active;
+	teardown () {
+		// noop
 	}
 
 	_findCreator ( filename ) {

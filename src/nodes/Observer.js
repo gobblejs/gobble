@@ -20,6 +20,17 @@ export default class Observer extends Node {
 
 		this.name = id || fn.id || fn.name || 'unknown';
 		this.id = uid( this.name );
+
+		// Propagate invalidation events and information
+		this._oninvalidate = changes => {
+			this._abort();
+			this.emit( 'invalidate', changes );
+		};
+
+		this._oninfo = details => this.emit( 'info', details );
+
+		this.input.on( 'invalidate', this._oninvalidate );
+		this.input.on( 'info', this._oninfo );
 	}
 
 	ready () {
@@ -107,36 +118,17 @@ export default class Observer extends Node {
 		return this._ready;
 	}
 
-	start () {
-		if ( this._active ) {
-			return;
-		}
-
-		this._active = true;
-
-		// Propagate invalidation events and information
-		this._oninvalidate = changes => {
-			this._abort();
-			this.emit( 'invalidate', changes );
-		};
-
-		this._oninfo = details => this.emit( 'info', details );
-
-		this.input.on( 'invalidate', this._oninvalidate );
-		this.input.on( 'info', this._oninfo );
-
-		return this.input.start();
+	startFileWatcher () {
+		this.input.startFileWatcher();
 	}
 
-	stop () {
+	stopFileWatcher () {
+		this.input.stopFileWatcher();
+	}
+
+	teardown () {
 		this.input.off( 'invalidate', this._oninvalidate );
 		this.input.off( 'info', this._oninfo );
-
-		this.input.stop();
-		this._active = false;
-	}
-
-	active () {
-		return this._active;
+		this.input.teardown();
 	}
 }

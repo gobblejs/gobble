@@ -100,9 +100,9 @@ export default class Node extends EventEmitter2 {
 			}
 		}
 
-		watchTask.close = () => node.stop();
+		watchTask.close = () => node.stopFileWatcher();
 
-		this.start();
+		this.startFileWatcher();
 		process.nextTick( build );
 
 		return watchTask;

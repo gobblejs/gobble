@@ -26,20 +26,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should stop completion of build', function () {
-			var node = gobble( 'tmp/foo' );
-			var task = node.build({
-				dest: 'tmp/output'
-			});
-			return task.then( function () {
-				assert.equal(node.active(), false);
-
-				return sander.readFile( 'tmp/output', 'foo.md' ).then( function ( data ) {
-					assert.equal( data.toString().trim(), 'foo: this is some text' );
-				});
-			});
-		});
-
 		it( 'should throw an error if no `dest` is specified', function () {
 			assert.throws( function () {
 				gobble( 'tmp/foo' ).build();
