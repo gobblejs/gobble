@@ -45,7 +45,7 @@ export default function serveError ( error, request, response ) {
 	}
 
 	else {
-		const message = escape( error.original ? error.original.message || error.original : error );
+		const message = escape( error.original ? error.original.message || error.original : error.message || error );
 		const filename = error.original ? error.original.filename : error.filename;
 
 		html = errTemplate({
