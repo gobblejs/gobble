@@ -6,7 +6,7 @@ import serveDir from './serveDir';
 import serveSourcemap from './serveSourcemap';
 import serveError from './serveError';
 
-export default function handleRequest ( srcDir, error, sourcemapPromises, request, response ) {
+export default function handleRequest ( node, srcDir, error, sourcemapPromises, request, response ) {
 	const parsedUrl = parse( request.url );
 	const pathname = parsedUrl.pathname;
 
@@ -31,7 +31,7 @@ export default function handleRequest ( srcDir, error, sourcemapPromises, reques
 	filepath = join( srcDir, pathname );
 
 	if ( extname( filepath ) === '.map' ) {
-		return serveSourcemap( filepath, sourcemapPromises, request, response )
+		return serveSourcemap( node, filepath, sourcemapPromises, request, response )
 			.catch( err => serveError( err, request, response ) );
 	}
 

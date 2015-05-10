@@ -125,7 +125,7 @@ export default function serve ( node, options = {} ) {
 	});
 
 	server.on( 'request', ( request, response ) => {
-		handleRequest( srcDir, error, sourcemapPromises, request, response )
+		handleRequest( node, srcDir, error, sourcemapPromises, request, response )
 			.catch( err => task.emit( 'error', err ) );
 	});
 

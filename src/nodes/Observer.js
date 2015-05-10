@@ -33,6 +33,10 @@ export default class Observer extends Node {
 		this.input.on( 'info', this._oninfo );
 	}
 
+	getFileFromChecksum ( checksum ) {
+		return this.input.getFileFromChecksum( checksum );
+	}
+
 	ready () {
 		let observation;
 

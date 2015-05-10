@@ -40,7 +40,7 @@ export default function watch ( node, options ) {
 						progressIndicator: true
 					});
 
-					return flattenSourcemaps( dir, dest, dest, task ).then( () => {
+					return flattenSourcemaps( node, dir, dest, dest, task ).then( () => {
 						task.emit( 'info', {
 							code: 'SOURCEMAP_PROCESS_COMPLETE',
 							duration: Date.now() - sourcemapProcessStart

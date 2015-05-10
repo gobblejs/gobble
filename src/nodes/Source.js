@@ -1,5 +1,5 @@
 import { basename, relative, resolve } from 'path';
-import { link, linkSync, lsr, mkdir, mkdirSync, readFileSync, statSync, Promise } from 'sander';
+import { linkSync, lsr, readFileSync, statSync, unlinkSync } from 'sander';
 import { crc32 } from 'crc';
 import { watch } from 'graceful-chokidar';
 import * as debounce from 'debounce';
@@ -47,6 +47,10 @@ export default class Source extends Node {
 		this.static = options && options.static;
 	}
 
+	getFileFromChecksum ( checksum ) {
+		return this.fileByChecksum[ checksum ];
+	}
+
 	ready () {
 		if ( !this._ready ) {
 			this._ready = queue.add( ( fulfil, reject ) => {
@@ -65,9 +69,11 @@ export default class Source extends Node {
 							this.fileByChecksum[ checksum ] = absolutePath;
 						});
 
-						// If
+						// For most situations, generating checksums takes no time at all,
+						// but it's probably worth warning about this if it becomes a
+						// source of pain. TODO 'warn' event?
 						const duration = Date.now() - start;
-						if ( duration > 200 ) {
+						if ( duration > 1000 ) {
 							this.emit( 'info', `the ${this.dir} directory took ${duration}ms to initialise - consider excluding unnecessary files from the build` );
 						}
 					})
@@ -117,7 +123,7 @@ export default class Source extends Node {
 			this._watcher = watch( this.file, options );
 
 			[ 'add', 'change' ].forEach( type => {
-				this._watcher.on( type, path => {
+				this._watcher.on( type, () => {
 					linkSync( this.file ).to( this.targetFile );
 					changes.push({ type, path: this.targetFile });
 					relay();

@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
 var request = require( 'request-promise' );
-var gobble = require( '../tmp' ).default;
+var gobble = require( '../lib' ).default;
 var sander = require( 'sander' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 var simulateChange = require( './utils/simulateChange' );
@@ -385,6 +385,47 @@ module.exports = function () {
 					})
 					.then( done )
 					.catch( done );
+			});
+		});
+
+		it( 'fixes `sources` with original files, where possible', function () {
+			var source = gobble( 'tmp/sourcemaps' );
+
+			return source
+				.include( 'app.coffee' )
+				.moveTo( 'js' )
+				.transform( 'coffee' )
+				.build({
+					dest: 'tmp/output'
+				})
+				.then( function () {
+					return sander.readFile( 'tmp/output/js/app.js.map' )
+						.then( String )
+						.then( JSON.parse )
+						.then( function ( map ) {
+							assert.deepEqual( map.sources, [ '../../sourcemaps/app.coffee' ]);
+						});
+				});
+		});
+
+		it( 'fixes `sources` with original files when serving', function ( done ) {
+			var source = gobble( 'tmp/sourcemaps' );
+
+			task = source
+				.include( 'app.coffee' )
+				.moveTo( 'js' )
+				.transform( 'coffee' )
+				.serve();
+
+			task.on( 'error', done );
+
+			task.once( 'built', function () {
+				request( 'http://localhost:4567/js/app.js.map' )
+					.then( JSON.parse )
+					.then( function ( map ) {
+						assert.deepEqual( map.sources, [ 'tmp/sourcemaps/app.coffee' ]);
+						done();
+					});
 			});
 		});
 	});

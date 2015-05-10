@@ -46,6 +46,10 @@ export default class Transformer extends Node {
 		this.input.on( 'info', this._oninfo );
 	}
 
+	getFileFromChecksum ( checksum ) {
+		return this.input.getFileFromChecksum( checksum );
+	}
+
 	ready () {
 		let outputdir;
 		let transformation;

@@ -35,7 +35,7 @@ export default function ( node, options ) {
 		return node.ready()
 			.then( inputdir => {
 				return copydir( inputdir ).to( dest )
-					.then( () => flattenSourcemaps( inputdir, dest, dest, task ) );
+					.then( () => flattenSourcemaps( node, inputdir, dest, dest, task ) );
 			})
 			.then( () => {
 				node.teardown();

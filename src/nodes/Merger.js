@@ -85,6 +85,17 @@ export default class Merger extends Node {
 		});
 	}
 
+	getFileFromChecksum ( checksum ) {
+		let i = this.inputs.length;
+		let file;
+
+		while ( i-- ) {
+			if ( file = this.inputs[i].getFileFromChecksum( checksum ) ) {
+				return file;
+			}
+		}
+	}
+
 	ready () {
 		let aborted;
 		let index;
@@ -102,7 +113,6 @@ export default class Merger extends Node {
 
 			this._ready = mkdir( outputdir ).then( () => {
 				let start;
-				let inputdirs = [];
 
 				return mapSeries( this.inputs, x => x.ready() )
 					.then( inputdirs => {
