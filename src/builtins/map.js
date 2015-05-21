@@ -85,9 +85,9 @@ export default function map ( inputdir, outputdir, options ) {
 							writeToCacheDir( code, map, codepath, dest )
 								.then( () => symlinkOrCopy( codepath ).to( dest ) )
 								.then( () => options.cache[ filename ] = codepath )
-								.then( fulfil )
-								.catch( reject );
-						});
+								.then( fulfil );
+						})
+						.catch( reject );
 				}).catch( err => {
 					queue.abort();
 					throw err;
@@ -125,12 +125,16 @@ function processResult ( result, original, src, dest, codepath ) {
 	return { code: result, map: null };
 }
 
+function isDataURI ( str ) {
+	return /^data:/.test( str ); // TODO beef this up
+}
+
 function processInlineSourceMap ( code, src, dest, original, codepath ) {
 	// if there's an inline sourcemap, process it
 	let match = SOURCEMAP_COMMENT.exec( code );
 	let map = null;
 
-	if ( match && /^data/.test( match[1] ) ) {
+	if ( match && isDataURI( match[1] ) ) {
 		match = /base64,(.+)$/.exec( match[1] );
 
 		if ( !match ) {

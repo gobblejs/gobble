@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
 var request = require( 'request-promise' );
-var gobble = require( '../tmp' ).default;
+var gobble = require( '../lib' ).default;
 var sander = require( 'sander' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 var simulateChange = require( './utils/simulateChange' );
@@ -390,6 +390,19 @@ module.exports = function () {
 					.then( done )
 					.catch( done );
 			});
+		});
+
+		it( 'should not get confused by filenames beginning with data', function () {
+			var source = gobble( 'tmp/data' );
+
+
+			return source
+				.transform( function ( input ) {
+					return input;
+				})
+				.build({
+					dest: 'tmp/output'
+				});
 		});
 	});
 };
