@@ -22,7 +22,7 @@
     "resolve": "^1.0.0",
     "rimraf": "~2.2.8",
     "sander": "^0.3.2",
-    "sorcery": "^0.5.4",
+    "sorcery": "^0.6.1",
     "source-map-support": "^0.2.10",
     "tiny-lr": "~0.1.0"
   },
@@ -44,7 +44,8 @@
   },
   "scripts": {
     "prepublish": "set -e; npm run build",
-    "test": "sh ./scripts/test.sh",
-    "build": "set -e; npm test; rm -rf lib; cp -r tmp lib"
+    "test": "mocha test/test.js",
+    "pretest": "npm run build",
+    "build": "sh ./scripts/build.sh"
   }
 }
