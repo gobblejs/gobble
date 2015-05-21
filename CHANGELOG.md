@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2
+
+* sourceMappingURLs that begin with `data` are not assumed to be data URIs
+
 ## 0.10.1
 
 * CSS sourcemaps are flattened correctly
