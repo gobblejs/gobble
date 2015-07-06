@@ -1,6 +1,6 @@
 import { basename, relative, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
-import { watch } from 'graceful-chokidar';
+import { watch } from 'chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
