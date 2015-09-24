@@ -35,17 +35,20 @@
   ],
   "devDependencies": {
     "babel": "^4.6.1",
+    "eslint": "^1.5.1",
     "esperanto": "^0.6.16",
     "gobble-coffee": "^0.2.1",
     "gobble-uglifyjs": "^0.2.1",
     "mocha": "^2.1.0",
     "request-promise": "^0.4.2",
+    "sorcery": "^0.6.3",
     "source-map": "^0.4.2"
   },
   "scripts": {
     "prepublish": "set -e; npm run build",
     "test": "mocha test/test.js",
     "pretest": "npm run build",
-    "build": "sh ./scripts/build.sh"
+    "build": "sh ./scripts/build.sh",
+    "lint": "eslint src"
   }
 }
