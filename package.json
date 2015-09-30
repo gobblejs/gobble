@@ -45,7 +45,7 @@
     "source-map": "^0.4.2"
   },
   "scripts": {
-    "prepublish": "set -e; npm run build",
+    "prepublish": "npm run test",
     "test": "mocha test/test.js",
     "pretest": "npm run build",
     "build": "sh ./scripts/build.sh",
