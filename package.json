@@ -42,7 +42,7 @@
     "gobble-uglifyjs": "^0.2.1",
     "mocha": "^2.3.3",
     "request-promise": "^0.4.3",
-    "rollup-babel": "^0.6.0",
+    "rollup-babel": "^0.6.1",
     "source-map": "^0.5.1"
   },
   "scripts": {
