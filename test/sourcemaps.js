@@ -272,7 +272,7 @@ module.exports = function () {
 
 						sander.lsr( 'tmp/output' )
 							.then( function ( files ) {
-								assert.deepEqual( files, [ 'app.min.js', 'app.min.js.map' ].sort() );
+								assert.deepEqual( files.sort(), [ 'app.min.js', 'app.min.js.map' ].sort() );
 							})
 					]);
 				});

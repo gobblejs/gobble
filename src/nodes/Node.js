@@ -25,10 +25,10 @@ function enforceCorrectArguments ( options ) {
 
 export default class Node extends EventEmitter2 {
 	constructor () {
-		this._gobble = true; // makes life easier for e.g. gobble-cli
-
 		// initialise event emitter
 		super({ wildcard: true });
+
+		this._gobble = true; // makes life easier for e.g. gobble-cli
 
 		this.counter = 1;
 		this.inspectTargets = [];
