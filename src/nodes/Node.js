@@ -3,18 +3,18 @@ import * as crc32 from 'buffer-crc32';
 import { lsrSync, readFileSync, rimraf } from 'sander';
 import { resolve } from 'path';
 import * as requireRelative from 'require-relative';
-import { grab, include, map as mapTransform, move } from '../builtins';
-import { Observer, Transformer } from './index';
-import config from '../config';
-import GobbleError from '../utils/GobbleError';
-import assign from '../utils/assign';
-import warnOnce from '../utils/warnOnce';
-import compareBuffers from '../utils/compareBuffers';
-import serve from './serve';
-import build from './build';
-import watch from './watch';
-import { isRegExp } from '../utils/is';
-import { ABORTED } from '../utils/signals';
+import { grab, include, map as mapTransform, move } from '../builtins/index.js';
+import { Observer, Transformer } from './index.js';
+import config from '../config/index.js';
+import GobbleError from '../utils/GobbleError.js';
+import assign from '../utils/assign.js';
+import warnOnce from '../utils/warnOnce.js';
+import compareBuffers from '../utils/compareBuffers.js';
+import serve from './serve/index.js';
+import build from './build/index.js';
+import watch from './watch/index.js';
+import { isRegExp } from '../utils/is.js';
+import { ABORTED } from '../utils/signals.js';
 
 // TODO remove this in a future version
 function enforceCorrectArguments ( options ) {

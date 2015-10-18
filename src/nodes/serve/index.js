@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { Promise } from 'sander';
 import * as tinyLr from 'tiny-lr';
 import cleanup from '../../utils/cleanup';
-import session from '../../session';
+import session from '../../session/index.js';
 import GobbleError from '../../utils/GobbleError';
 import handleRequest from './handleRequest';
 

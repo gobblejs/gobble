@@ -1,6 +1,6 @@
 set -e
 
-rm -rf lib
-mkdir -p lib
+rm -rf dist
+mkdir -p dist
 
-babel src -m commonStrict --out-dir lib -b useStrict --source-maps-inline --loose es6.classes
+rollupbabel -i src/index.js -o dist/gobble.js -f cjs -e path,chalk,sander,chokidar,debounce,promise-map-series,eventemitter2,buffer-crc32,require-relative,util,http,tiny-lr,minimatch,url,mime,graceful-fs

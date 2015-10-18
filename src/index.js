@@ -1,9 +1,9 @@
 import { resolve } from 'path';
-import { Merger, Source } from './nodes';
 import * as sander from 'sander';
-import config from './config';
 import { cyan } from 'chalk';
-import { isArray, isString } from './utils/is';
+import { Merger, Source } from './nodes/index.js';
+import config from './config/index.js';
+import { isArray, isString } from './utils/is.js';
 
 function fail () {
 	throw new Error( `could not process input. Usage:

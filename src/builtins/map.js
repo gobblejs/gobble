@@ -1,9 +1,9 @@
 import { extname, join, resolve } from 'path';
 import * as chalk from 'chalk';
-import Queue from '../queue/Queue';
+import Queue from '../queue/Queue.js';
 import { lsr, readFile, symlinkOrCopy, writeFile, Promise } from 'sander';
 import assign from '../utils/assign';
-import config from '../config';
+import config from '../config/index.js';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';

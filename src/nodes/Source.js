@@ -4,7 +4,7 @@ import { watch } from 'chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
-import session from '../session';
+import session from '../session/index.js';
 import GobbleError from '../utils/GobbleError';
 
 export default class Source extends Node {

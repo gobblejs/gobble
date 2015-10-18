@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
 var request = require( 'request-promise' );
-var gobble = require( '../lib' ).default;
+var gobble = require( '..' );
 var sander = require( 'sander' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 var simulateChange = require( './utils/simulateChange' );

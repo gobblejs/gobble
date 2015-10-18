@@ -4,4 +4,4 @@ require( 'source-map-support' ).install();
 var gfs = require( 'graceful-fs' );
 gfs.gracefulify(require( 'fs' ));
 
-module.exports = require( './lib' ).default;
+module.exports = require( './dist/gobble' );

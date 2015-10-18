@@ -1,6 +1,6 @@
 import { copydir, rimraf, Promise } from 'sander';
 import cleanup from '../../utils/cleanup';
-import session from '../../session';
+import session from '../../session/index.js';
 import GobbleError from '../../utils/GobbleError';
 import flattenSourcemaps from '../../utils/flattenSourcemaps';
 

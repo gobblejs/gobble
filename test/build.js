@@ -1,7 +1,7 @@
 var assert = require( 'assert' ),
 	path = require( 'path' ),
 	sander = require( 'sander' ),
-	gobble = require( '../lib' ).default;
+	gobble = require( '..' ),
 	sample = new RegExp( '^' + path.join( __dirname, 'sample' ) );
 
 module.exports = function () {

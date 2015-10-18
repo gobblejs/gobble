@@ -1,2 +1,2 @@
-import Queue from './Queue';
+import Queue from './Queue.js';
 export default new Queue();
