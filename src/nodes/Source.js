@@ -14,6 +14,7 @@ export default class Source extends Node {
 		this.id = options.id || 'source';
 		this.dir = dir;
 		this.callbacks = [];
+		this._entries = {};
 
 		// Ensure the source exists, and is a directory
 		try {
@@ -86,45 +87,44 @@ export default class Source extends Node {
 			changes = [];
 		}, 100 );
 
-		this._entries = {}
-		this._dir = new Directory( this.dir );
-		const processDirEntries = ( err, entries ) => {
-			if (err) return;
+		if ( this.dir ) {
+			this._dir = new Directory( this.dir );
+			const processDirEntries = ( err, entries ) => {
+				if (err) throw err;
+				entries.forEach( entry => {
+					if ( entry instanceof File ) {
+						if ( !this._entries[ entry.path ] ) {
+							changes.push({ type: 'add', path: entry.path })
+						}
 
-			entries.forEach( entry => {
-				if ( this._entries[ entry.path ] ) return;
+						this._entries[entry.path] = entry;
 
-				if ( entry instanceof File ) {
-					entry.onDidChange( () => {
-						changes.push({ type: 'change', path: entry.path });
-						relay();
-					});
+						entry.onDidChange( () => {
+							changes.push({ type: 'change', path: entry.path });
+							relay();
+						});
 
-					entry.onDidDelete( () => {
-						changes.push({ type: 'unlink', path: entry.path })
-						relay();
-						delete this._entries[ entry.path ];
-					});
+						let doDelete = () => {
+							changes.push({ type: 'unlink', path: entry.path })
+							relay();
+							this._entries[ entry.path ].unsubscribeFromNativeChangeEvents();
+							delete this._entries[ entry.path ];
+						};
 
-					if ( !this._entries[ entry.path ] ) {
-						changes.push({ type: 'add', path: entry.path })
-						relay();
+						entry.onDidDelete( doDelete );
+						entry.onDidRename( doDelete );
+
+					} else if ( entry instanceof Directory ) {
+						entry.onDidChange( () => {
+							entry.getEntries( processDirEntries );
+						})
 					}
+				})
+			}
 
-					this._entries[ entry.path ] = entry;
-
-				} else if ( entry instanceof Directory ) {
-					entry.onDidChange( () => {
-						entry.getEntries( processDirEntries );
-					})
-
-					entry.getEntries( processDirEntries );
-				}
-			})
+			this._dir.getEntries( processDirEntries );
+			processDirEntries( null, [ this._dir ] );
 		}
-
-		this._dir.getEntries( processDirEntries );
-		processDirEntries( null, [ this._dir ] );
 
 		if ( this.file ) {
 			this._fileWatcher = watch( this.file, (event) => {
@@ -140,11 +140,12 @@ export default class Source extends Node {
 				delete this._entries[ path ];
 			})
 			this._dir.unsubscribeFromNativeChangeEvents();
-			this._dir = null
+			this._dir = null;
 		}
 
 		if ( this._fileWatcher ) {
 			this._fileWatcher.close();
+			this._fileWatcher = null;
 		}
 
 		this._active = false;
