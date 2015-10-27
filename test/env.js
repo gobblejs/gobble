@@ -16,6 +16,7 @@ module.exports = function () {
 			var tmpCache = {}, gobble;
 
 			Object.keys( require.cache ).forEach( function ( key ) {
+				if ( key.substr(-5) === '.node' ) return;
 				tmpCache[ key ] = require.cache[ key ];
 				delete require.cache[ key ];
 			});
