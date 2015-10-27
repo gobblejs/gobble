@@ -1,6 +1,6 @@
 import { basename, relative, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
-import { watch } from 'chokidar';
+import { watch, Directory, File } from 'pathwatcher';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
@@ -86,33 +86,61 @@ export default class Source extends Node {
 			changes = [];
 		}, 100 );
 
-		const options = {
-			persistent: true,
-			ignoreInitial: true,
-			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
-		};
+		this._entries = {}
+		this._dir = new Directory( this.dir );
+		const processDirEntries = ( err, entries ) => {
+			if (err) return;
 
-		this._watcher = watch( this.dir, options );
+			entries.forEach( entry => {
+				if ( this._entries[ entry.path ] ) return;
 
-		[ 'add', 'change', 'unlink' ].forEach( type => {
-			this._watcher.on( type, path => {
-				changes.push({ type, path });
-				relay();
-			});
-		});
+				if ( entry instanceof File ) {
+					entry.onDidChange( () => {
+						changes.push({ type: 'change', path: entry.path });
+						relay();
+					});
+
+					entry.onDidDelete( () => {
+						changes.push({ type: 'unlink', path: entry.path })
+						relay();
+						delete this._entries[ entry.path ];
+					});
+
+					if ( !this._entries[ entry.path ] ) {
+						changes.push({ type: 'add', path: entry.path })
+						relay();
+					}
+
+					this._entries[ entry.path ] = entry;
+
+				} else if ( entry instanceof Directory ) {
+					entry.onDidChange( () => {
+						entry.getEntries( processDirEntries );
+					})
+
+					entry.getEntries( processDirEntries );
+				}
+			})
+		}
+
+		this._dir.getEntries( processDirEntries );
+		processDirEntries( null, [ this._dir ] );
 
 		if ( this.file ) {
-			this._fileWatcher = watch( this.file, options );
-
-			this._fileWatcher.on( 'change', () => {
-				link( this.file ).to( this.targetFile );
+			this._fileWatcher = watch( this.file, (event) => {
+				if ( type === 'change' ) link( this.file ).to( this.targetFile );
 			});
 		}
 	}
 
 	stop () {
-		if ( this._watcher ) {
-			this._watcher.close();
+		if ( this._dir ) {
+			Object.keys(this._entries).forEach( path => {
+				this._entries[ path ].unsubscribeFromNativeChangeEvents();
+				delete this._entries[ path ];
+			})
+			this._dir.unsubscribeFromNativeChangeEvents();
+			this._dir = null
 		}
 
 		if ( this._fileWatcher ) {
