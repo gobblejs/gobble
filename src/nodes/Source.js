@@ -68,47 +68,50 @@ export default class Source extends Node {
 			linkSync( this.file ).to( this.targetFile );
 		}
 
-		let changes = [];
+		let changed = {};
 
 		const relay = debounce( () => {
-			this.changes = changes.map( change => {
-				const result = {
-					file: relative( this.dir, change.path )
-				};
+			let changes = [];
 
-				change.type === 'add'    && ( change.added = true );
-				change.type === 'change' && ( change.changed = true );
-				change.type === 'unlink' && ( change.removed = true );
+			Object.keys( changed ).forEach( path => {
+				const type = changed[ path ];
+				let change = { type, file: relative( this.dir, path ) };
 
-				return result;
+				type === 'add'    && ( change.added = true );
+				type === 'change' && ( change.changed = true );
+				type === 'unlink' && ( change.removed = true );
+
+				changes.push( change );
 			});
 
-			this.emit( 'invalidate', changes );
-			changes = [];
+			this.emit( 'invalidate', this.changes = changes );
+			changed = {};
 		}, 100 );
 
 		if ( this.dir ) {
 			this._dir = new Directory( this.dir );
-			const processDirEntries = ( err, entries ) => {
+			const processDirEntries = ( err, entries, initial ) => {
 				if (err) throw err;
+
 				entries.forEach( entry => {
+					if ( this._entries[ entry.path ] ) return;
+					else if ( !initial ) {
+						changed[ entry.path ] = 'add';
+					}
+
+					this._entries[ entry.path ] = entry;
+
 					if ( entry instanceof File ) {
-						if ( !this._entries[ entry.path ] ) {
-							changes.push({ type: 'add', path: entry.path })
-						}
-
-						this._entries[entry.path] = entry;
-
 						entry.onDidChange( () => {
-							changes.push({ type: 'change', path: entry.path });
+							changed[ entry.path ] = 'change';
 							relay();
 						});
 
 						let doDelete = () => {
-							changes.push({ type: 'unlink', path: entry.path })
-							relay();
 							this._entries[ entry.path ].unsubscribeFromNativeChangeEvents();
-							delete this._entries[ entry.path ];
+							this._entries[ entry.path ] = null;
+							changed[ entry.path ] = 'unlink';
+							relay();
 						};
 
 						entry.onDidDelete( doDelete );
@@ -117,17 +120,21 @@ export default class Source extends Node {
 					} else if ( entry instanceof Directory ) {
 						entry.onDidChange( () => {
 							entry.getEntries( processDirEntries );
-						})
+						});
+
+						entry.getEntries( ( err, entries ) => {
+							processDirEntries( err, entries, initial );
+						});
 					}
-				})
+				});
 			}
 
 			this._dir.getEntries( processDirEntries );
-			processDirEntries( null, [ this._dir ] );
+			processDirEntries( null, [ this._dir ], true );
 		}
 
 		if ( this.file ) {
-			this._fileWatcher = watch( this.file, (event) => {
+			this._fileWatcher = watch( this.file, ( type ) => {
 				if ( type === 'change' ) link( this.file ).to( this.targetFile );
 			});
 		}
