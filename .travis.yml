@@ -4,5 +4,4 @@ node_js:
   - "0.12"
   - "4"
 env:
-  global:
-    - BUILD_TIMEOUT=10000
+  - CC=clang CXX=clang++ npm_config_clang=1
