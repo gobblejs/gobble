@@ -20,7 +20,7 @@ export default class Transformer extends Node {
 		this.input = input;
 
 		this.transformer = transformer;
-		this.options = assign( {}, options );
+		this.options = assign( {}, transformer.defaults, options );
 
 		this.name = id || this.options.id || transformer.id || transformer.name || 'unknown';
 		this.id = uid( this.name );
