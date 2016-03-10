@@ -95,6 +95,25 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should pass copy of default options to dir transformers', function () {
+			var source = gobble( 'tmp/foo' );
+
+			function checkOptions ( indir, outdir, options, done ) {
+				assert.equal( options.foo, 'bar' );
+				options.foo = 'baz';
+
+				done();
+			}
+
+			checkOptions.defaults = { foo: 'bar' };
+
+			task = source.transform( checkOptions ).build({
+				dest: 'tmp/output'
+			});
+
+			return task;
+		});
+
 		it( 'should allow a single file as a source node (#23)', function ( done ) {
 			var source = gobble( 'tmp/foo/foo.md' ), count = 0;
 
