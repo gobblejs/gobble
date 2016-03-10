@@ -163,6 +163,24 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should skip files for file transforms which return null', function () {
+			var count = 0, source = gobble( 'tmp/foo' ), task;
+
+			function nullFileTransform( input ) {
+				count++;
+				return ~input.indexOf('foo') ? input : null;
+			}
+
+			task = source.transform( nullFileTransform ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 3 );
+				assert.deepEqual( sander.lsrSync( 'tmp/output' ), [ 'foo.md' ] );
+			});
+		});
+
 		it( 'nodes that appear multiple times should only emit info events once (serve/watch)', function ( done ) {
 			var a, b, c, info = [];
 
