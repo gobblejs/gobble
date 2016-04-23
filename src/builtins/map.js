@@ -78,6 +78,8 @@ export default function map ( inputdir, outputdir, options ) {
 								return reject( err );
 							}
 
+							if ( result === null ) return fulfil();
+
 							const codepath = resolve( this.cachedir, filename );
 
 							const { code, map } = processResult( result, data, src, dest, codepath );

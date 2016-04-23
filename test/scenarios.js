@@ -95,6 +95,25 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should pass copy of default options to dir transformers', function () {
+			var source = gobble( 'tmp/foo' );
+
+			function checkOptions ( indir, outdir, options, done ) {
+				assert.equal( options.foo, 'bar' );
+				options.foo = 'baz';
+
+				done();
+			}
+
+			checkOptions.defaults = { foo: 'bar' };
+
+			task = source.transform( checkOptions ).build({
+				dest: 'tmp/output'
+			});
+
+			return task;
+		});
+
 		it( 'should allow a single file as a source node (#23)', function ( done ) {
 			var source = gobble( 'tmp/foo/foo.md' ), count = 0;
 
@@ -141,6 +160,24 @@ module.exports = function () {
 
 			return task.then( function () {
 				assert.equal( count, 1 );
+			});
+		});
+
+		it( 'should skip files for file transforms which return null', function () {
+			var count = 0, source = gobble( 'tmp/foo' ), task;
+
+			function nullFileTransform( input ) {
+				count++;
+				return ~input.indexOf('foo') ? input : null;
+			}
+
+			task = source.transform( nullFileTransform ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 3 );
+				assert.deepEqual( sander.lsrSync( 'tmp/output' ), [ 'foo.md' ] );
 			});
 		});
 
