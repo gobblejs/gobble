@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0
+
+* Switch to pathwatcher
+* Support defaults for directory transformers
+* Allow file transformers to return `null`, skipping file
+* Update dependencies
+* Simplify build process
+
 ## 0.10.2
 
 * sourceMappingURLs that begin with `data` are not assumed to be data URIs
