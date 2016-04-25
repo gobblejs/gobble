@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1
+
+* Fix `"main"` in package.json ([#109](https://github.com/gobblejs/gobble/pull/109))
+
 ## 0.11.0
 
 * Switch to pathwatcher
