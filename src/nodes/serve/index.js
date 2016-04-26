@@ -49,7 +49,8 @@ export default function serve ( node, options = {} ) {
 
 			task.emit( 'info', {
 				code: 'BUILD_COMPLETE',
-				duration: Date.now() - buildStart
+				duration: Date.now() - buildStart,
+				port
 			});
 
 			if ( !firedReadyEvent && serverReady ) {
