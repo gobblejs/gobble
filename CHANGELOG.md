@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.2
+
+* Allow file transformers to read binary files with `sourceEncoding: null` ([#105](https://github.com/gobblejs/gobble/issues/105))
+* Emit port info on rebuild ([#gobble-cli/18](https://github.com/gobblejs/gobble-cli/issues/18))
+
 ## 0.11.1
 
 * Fix `"main"` in package.json ([#109](https://github.com/gobblejs/gobble/pull/109))
