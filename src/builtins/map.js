@@ -27,18 +27,17 @@ export default function map ( inputdir, outputdir, options ) {
 				if ( this.aborted ) return;
 
 				const ext = extname( filename );
-
-				// change extension if necessary, e.g. foo.coffee -> foo.js
-				const destname = ( options.ext && ~options.accept.indexOf( ext ) ) ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
-
 				const src = join( inputdir, filename );
-				const dest = join( outputdir, destname );
 
 				// If this mapper only accepts certain extensions, and this isn't
 				// one of them, just copy the file
 				if ( shouldSkip( options, ext, filename ) ) {
-					return symlinkOrCopy( src ).to( dest );
+					return symlinkOrCopy( src ).to( outputdir, filename );
 				}
+
+				// change extension if necessary, e.g. foo.coffee -> foo.js
+				const destname = options.ext ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
+				const dest = join( outputdir, destname );
 
 				// If this file *does* fall within this transformer's remit, but
 				// hasn't changed, we just copy the cached file

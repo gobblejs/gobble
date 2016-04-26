@@ -146,7 +146,7 @@ module.exports = function () {
 		it( 'should allow file transforms to filter with a RegExp', function () {
 			var count = 0, source = gobble( 'tmp/foo' ), task;
 
-			function checkFilter( input ) {
+			function checkFilter ( input ) {
 				count++;
 				return input;
 			}
@@ -163,10 +163,33 @@ module.exports = function () {
 			});
 		});
 
+		it( 'should allow file transforms to filter with a RegExp and an extension', function () {
+			var count = 0, source = gobble( 'tmp/foo' ), task;
+
+			function checkFilter ( input ) {
+				count++;
+				return input;
+			}
+			checkFilter.defaults = {
+				accept: /foo\.md/,
+				ext: '.txt'
+			};
+
+			task = source.transform( checkFilter ).build({
+				dest: 'tmp/output'
+			});
+
+			return task.then( function () {
+				assert.equal( count, 1 );
+				assert.deepEqual( sander.lsrSync( 'tmp/output' ).sort(), [ 'foo.txt', 'bar.md', 'baz.md' ].sort() );
+				assert.equal( sander.readFileSync( 'tmp/output/foo.txt', { encoding: 'utf-8' }).trim(), 'foo: this is some text' );
+			});
+		});
+
 		it( 'should skip files for file transforms which return null', function () {
 			var count = 0, source = gobble( 'tmp/foo' ), task;
 
-			function nullFileTransform( input ) {
+			function nullFileTransform ( input ) {
 				count++;
 				return ~input.indexOf('foo') ? input : null;
 			}
