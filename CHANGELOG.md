@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.3
+
+* Allow `.ext` option to work if `.accept` is a regex ([#97](https://github.com/gobblejs/gobble/issues/97))
+
 ## 0.11.2
 
 * Allow file transformers to read binary files with `sourceEncoding: null` ([#105](https://github.com/gobblejs/gobble/issues/105))
