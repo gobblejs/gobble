@@ -4,7 +4,7 @@ export function isRegExp ( what ) {
 	return toString.call( what ) === '[object RegExp]';
 }
 
-export function isArray( thing ) {
+export function isArray ( thing ) {
 	return toString.call( thing ) === '[object Array]';
 }
 

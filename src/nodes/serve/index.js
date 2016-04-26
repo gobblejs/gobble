@@ -12,7 +12,6 @@ export default function serve ( node, options = {} ) {
 	const gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble' );
 	const task = session.create({ gobbledir });
 
-	let buildStarted = Date.now();
 	let watchTask;
 	let srcDir;
 	let sourcemapPromises;
@@ -67,9 +66,7 @@ export default function serve ( node, options = {} ) {
 	};
 
 	task.close = () => {
-		if ( node ) {
-			node.stop();
-		}
+		if ( node ) node.stop();
 
 		return new Promise( fulfil => {
 			session.destroy();
@@ -81,12 +78,7 @@ export default function serve ( node, options = {} ) {
 	task.pause = () => {
 		error = { gobble: 'WAITING' };
 
-		buildStarted = Date.now();
-
-		if ( node ) {
-			node.stop();
-		}
-
+		if ( node ) node.stop();
 		node = null;
 
 		return cleanup( gobbledir );

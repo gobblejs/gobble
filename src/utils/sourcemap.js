@@ -4,7 +4,7 @@ SOURCEMAPPING_URL += 'ppingURL';
 const SOURCEMAP_COMMENT = new RegExp( `\n*(?:` +
 	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+)|` +      // js
 	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+)\\s\\+\\/)` + // css
-`\\s*$`, 'g' );
+'\\s*$', 'g' );
 
 function getSourcemapComment ( url, ext ) {
 	if ( ext === '.css' ) {

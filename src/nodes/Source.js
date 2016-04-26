@@ -127,7 +127,7 @@ export default class Source extends Node {
 						});
 					}
 				});
-			}
+			};
 
 			this._dir.getEntries( processDirEntries );
 			processDirEntries( null, [ this._dir ], true );
@@ -145,7 +145,7 @@ export default class Source extends Node {
 			Object.keys(this._entries).forEach( path => {
 				this._entries[ path ].unsubscribeFromNativeChangeEvents();
 				delete this._entries[ path ];
-			})
+			});
 			this._dir.unsubscribeFromNativeChangeEvents();
 			this._dir = null;
 		}
