@@ -601,5 +601,21 @@ module.exports = function () {
 				assert.ok( /could not process input/.test( err.message ) );
 			}
 		});
+
+		it( 'should read file as binary data if sourceEncoding === null', function () {
+			var source = gobble( 'tmp/foo' );
+
+			function check ( input ) {
+				assert.ok( input instanceof Buffer );
+			}
+
+			check.defaults = {
+				sourceEncoding: null
+			};
+
+			return source
+				.transform( check )
+				.build({ dest: 'tmp/output' });
+		});
 	});
 };

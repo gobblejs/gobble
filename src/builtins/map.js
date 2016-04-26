@@ -64,8 +64,9 @@ export default function map ( inputdir, outputdir, options ) {
 					delete transformOptions.accept;
 					delete transformOptions.ext;
 
-					return readFile( src )
-						.then( buffer => buffer.toString( transformOptions.sourceEncoding ) )
+					const encoding = 'sourceEncoding' in transformOptions ? transformOptions.sourceEncoding : 'utf-8';
+
+					return readFile( src, { encoding })
 						.then( data => {
 							if ( this.aborted ) return reject( ABORTED );
 
