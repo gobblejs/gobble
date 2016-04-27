@@ -1,0 +1,43 @@
+// Graphs are really hacked UML class diagrams
+// Just copy-paste some of them into http://www.yuml.me/diagram/class/draw to regen them
+
+[Source node: src⁄root|gobble.mp3;handturkey.png;index.html]
+
+[Source node: src⁄root]->[localhost:4567]
+
+----
+
+[Source node: src⁄styles|animation.scss;layout.scss;main.scss;mixins.scss;typography.scss]
+
+[Source node: src⁄styles]->[Transform node: saas|main.css]
+
+[Transform node: saas]->[localhost:4567]
+
+---
+
+
+[Source node: src⁄root|gobble.mp3;handturkey.png;index.html]
+
+[Source node: src⁄root]->[Merge node]
+
+----
+
+[Source node: src⁄root|gobble.mp3;handturkey.png;index.html]->[Merge node]
+
+[Source node: src⁄styles|animation.scss;layout.scss;main.scss;mixins.scss;typography.scss]
+
+[Source node: src⁄styles]->[Transform node: saas|main.css]
+
+[Transform node: saas]->[Merge node]
+
+[Source node: src⁄js|app.js]
+
+[Source node: src⁄js]->[Transform node: es6-transpiler|app.js]
+
+[Transform node: es6-transpiler]->[Merge node]
+
+[Merge node|gobble.mp3;handturkey.png;index.html;main.css;app.js]
+
+[Merge node]->[localhost:4567]
+
+---
