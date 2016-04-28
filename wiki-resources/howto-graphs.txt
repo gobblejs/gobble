@@ -41,3 +41,7 @@
 [Merge node]->[localhost:4567]
 
 ---
+
+[Merge node]->[dist⁄gobble.mp3;dist⁄handturkey.png;dist⁄index.html;dist⁄main.css;dist⁄app.js]
+
+
