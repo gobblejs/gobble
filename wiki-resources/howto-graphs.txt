@@ -44,4 +44,12 @@
 
 [Merge node]->[dist⁄gobble.mp3;dist⁄handturkey.png;dist⁄index.html;dist⁄main.css;dist⁄app.js]
 
+---
 
+[Previous node|foo⁄bar.js;foo⁄quux.css;foo⁄ziip.png] -> [include('**⁄*.js')|foo⁄bar.js]
+
+[Previous node|foo⁄bar.js;foo⁄quux.css;foo⁄ziip.png] -> [exclude('**⁄*.js')|foo⁄quux.css;foo⁄ziip.png]
+
+[Previous node|foo⁄bar.js;foo⁄quux.css;foo⁄ziip.png] -> [grab('foo')|bar.js;quux.css;ziip.png]
+
+[Previous node|foo⁄bar.js;foo⁄quux.css;foo⁄ziip.png] -> [moveTo('baaz')|baaz⁄foo⁄bar.js;baaz⁄foo⁄quux.css;baaz⁄foo⁄ziip.png]
