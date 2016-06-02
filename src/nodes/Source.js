@@ -1,6 +1,6 @@
 import { basename, relative, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
-import { watch, Directory, File } from 'pathwatcher';
+import { watch } from 'chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
@@ -68,86 +68,55 @@ export default class Source extends Node {
 			linkSync( this.file ).to( this.targetFile );
 		}
 
-		let changed = {};
+		let changed = [];
 
 		const relay = debounce( () => {
-			let changes = [];
+			this.changes = changed.map( change => {
+				const result = {
+					file: relative( this.dir, change.path )
+				};
 
-			Object.keys( changed ).forEach( path => {
-				const type = changed[ path ];
-				let change = { type, file: relative( this.dir, path ) };
+				change.type === 'add'    && ( change.added = true );
+				change.type === 'change' && ( change.changed = true );
+				change.type === 'unlink' && ( change.removed = true );
 
-				type === 'add'    && ( change.added = true );
-				type === 'change' && ( change.changed = true );
-				type === 'unlink' && ( change.removed = true );
-
-				changes.push( change );
+				return result;
 			});
 
-			this.emit( 'invalidate', this.changes = changes );
-			changed = {};
+			this.emit( 'invalidate', this.changes );
+			changed = [];
 		}, 100 );
 
+		const options = {
+			persistent: true,
+			ignoreInitial: true,
+			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
+		};
+
 		if ( this.dir ) {
-			this._dir = new Directory( this.dir );
-			const processDirEntries = ( err, entries, initial ) => {
-				if (err) throw err;
+			this._watcher = watch( this.dir, options );
 
-				entries.forEach( entry => {
-					if ( this._entries[ entry.path ] ) return;
-					else if ( !initial ) {
-						changed[ entry.path ] = 'add';
-					}
-
-					this._entries[ entry.path ] = entry;
-
-					if ( entry instanceof File ) {
-						entry.onDidChange( () => {
-							changed[ entry.path ] = 'change';
-							relay();
-						});
-
-						let doDelete = () => {
-							this._entries[ entry.path ].unsubscribeFromNativeChangeEvents();
-							this._entries[ entry.path ] = null;
-							changed[ entry.path ] = 'unlink';
-							relay();
-						};
-
-						entry.onDidDelete( doDelete );
-						entry.onDidRename( doDelete );
-
-					} else if ( entry instanceof Directory ) {
-						entry.onDidChange( () => {
-							entry.getEntries( processDirEntries );
-						});
-
-						entry.getEntries( ( err, entries ) => {
-							processDirEntries( err, entries, initial );
-						});
-					}
+			[ 'add', 'change', 'unlink' ].forEach( type => {
+				this._watcher.on( type, path => {
+					changed.push({ type, path });
+					relay();
 				});
-			};
-
-			this._dir.getEntries( processDirEntries );
-			processDirEntries( null, [ this._dir ], true );
+			});
 		}
 
 		if ( this.file ) {
-			this._fileWatcher = watch( this.file, ( type ) => {
-				if ( type === 'change' ) link( this.file ).to( this.targetFile );
+			this._fileWatcher = watch( this.file, options );
+
+			this._fileWatcher.on( 'change', () => {
+				link( this.file ).to( this.targetFile );
 			});
 		}
 	}
 
 	stop () {
-		if ( this._dir ) {
-			Object.keys(this._entries).forEach( path => {
-				this._entries[ path ].unsubscribeFromNativeChangeEvents();
-				delete this._entries[ path ];
-			});
-			this._dir.unsubscribeFromNativeChangeEvents();
-			this._dir = null;
+		if ( this._watcher ) {
+			this._watcher.close();
+			this._watcher = null;
 		}
 
 		if ( this._fileWatcher ) {
