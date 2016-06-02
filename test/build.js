@@ -5,16 +5,12 @@ var gobble = require( '..' );
 module.exports = function () {
 	describe( 'node.build()', function () {
 		beforeEach( function () {
-			return sander.rimraf( 'tmp' ).then( function () {
-				return sander.copydir( 'sample' ).to( 'tmp' );
-			});
-		});
-
-		afterEach( function () {
 			return Promise.all([
 				sander.rimraf( '.gobble-build' ),
 				sander.rimraf( 'tmp' )
-			]);
+			]).then( function () {
+				return sander.copydir( 'sample' ).to( 'tmp' );
+			});
 		});
 
 		it( 'should return a promise that fulfills on completion of build', function () {
