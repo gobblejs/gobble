@@ -1,5 +1,7 @@
 # Changelog
 
+* Reject in promise instead of throwing MISSING_DEST_DIR
+
 ## 0.11.3
 
 * Allow `.ext` option to work if `.accept` is a regex ([#97](https://github.com/gobblejs/gobble/issues/97))
