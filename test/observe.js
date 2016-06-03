@@ -2,10 +2,6 @@ var assert = require( 'assert' );
 var sander = require( 'sander' );
 var gobble = require( '..' );
 
-function read (path) {
-	return sander.readFileSync( path, { encoding: 'utf-8' }).trim();
-}
-
 module.exports = function () {
 	describe( 'node.observe()', function () {
 		beforeEach( function () {
