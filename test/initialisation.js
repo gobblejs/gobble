@@ -1,50 +1,26 @@
 var assert = require( 'assert' );
-var path = require( 'path' );
-var request = require( 'request-promise' );
 var gobble = require( '..' );
-var sander = require( 'sander' );
-var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
-var simulateChange = require( './utils/simulateChange' );
-
-var Promise = sander.Promise;
 
 gobble.cwd( __dirname );
 
-function identity ( input ) {
-	return input;
-}
-
 module.exports = function () {
-	var task;
-
 	describe( 'initialisation', function () {
-		beforeEach( function () {
-			return sander.rimraf( 'tmp' ).then( function () {
-				return sander.copydir( 'sample' ).to( 'tmp' );
-			});
-		});
-
-		afterEach( function () {
-			try {
-				return task.close().then( cleanup );
-			} catch ( err ) {
-				if ( task ) {
-					throw err;
-				}
-			} finally {
-				task = null;
-				return cleanup();
-			}
-
-			function cleanup () {
-				return sander.rimraf( 'tmp' );
-			}
-		});
-
-		it( 'should bug out on non-existent directories (#12)', function () {
+		it( 'errors on non-existent directories (#12)', function () {
 			assert.throws( function () {
-				gobble( 'sample/nope' ).serve();
+				gobble( 'sample/nope' );
 			}, /nope directory does not exist/ );
+		});
+
+		it( 'errors if you try to pass multiple nodes to gobble()', function () {
+			assert.throws( function () {
+				gobble( 'tmp/foo', 'tmp/bar' );
+			}, /could not process input/ );
+		});
+
+		it( 'errors if an input array member is invalid', function () {
+			assert.throws( function () {
+				gobble([ 42 ]);
+			}, /could not process input/ );
 		});
 	});
 };

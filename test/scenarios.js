@@ -330,38 +330,17 @@ module.exports = function () {
 			});
 		});
 
-		it( 'errors on .grab(path1, path2) or .moveTo(path1, path2)', function () {
-			try {
-				var source = gobble( 'tmp/foo' ).grab( 'a', 'b' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /cannot pass multiple strings/.test( err.message ) );
-			}
-
-			try {
-				var source = gobble( 'tmp/foo' ).moveTo( 'a', 'b' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /cannot pass multiple strings/.test( err.message ) );
-			}
+		it( 'errors on .grab(path1, path2)', function () {
+			assert.throws( function () {
+				gobble( 'tmp/foo' ).grab( 'a', 'b' );
+			}, /cannot pass multiple strings/ );
 		});
 
-		it( 'errors if you try to pass multiple nodes to gobble()', function () {
-			try {
-				var source = gobble( 'tmp/foo', 'tmp/bar' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /could not process input/.test( err.message ) );
-			}
+		it( 'errors on .moveTo(path1, path2)', function () {
+			assert.throws( function () {
+				gobble( 'tmp/foo' ).moveTo( 'a', 'b' );
+			}, /cannot pass multiple strings/);
 		});
 
-		it( 'errors if an input array member is invalid', function () {
-			try {
-				var source = gobble([ 42 ]);
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /could not process input/.test( err.message ) );
-			}
-		});
 	});
 };
