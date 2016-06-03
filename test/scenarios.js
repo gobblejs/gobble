@@ -73,47 +73,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should pass copy of default options to file transformers', function () {
-			var source = gobble( 'tmp/foo' ), count = 0;
-
-			function checkOptions ( input, options ) {
-				assert.equal( options.foo, 'bar' );
-				options.foo = 'baz';
-				count++;
-
-				return input;
-			}
-
-			checkOptions.defaults = { foo: 'bar' };
-
-			task = source.transform( checkOptions ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 3 );
-			});
-		});
-
-		it( 'should pass copy of default options to dir transformers', function () {
-			var source = gobble( 'tmp/foo' );
-
-			function checkOptions ( indir, outdir, options, done ) {
-				assert.equal( options.foo, 'bar' );
-				options.foo = 'baz';
-
-				done();
-			}
-
-			checkOptions.defaults = { foo: 'bar' };
-
-			task = source.transform( checkOptions ).build({
-				dest: 'tmp/output'
-			});
-
-			return task;
-		});
-
 		it( 'should allow a single file as a source node (#23)', function ( done ) {
 			var source = gobble( 'tmp/foo/foo.md' ), count = 0;
 
@@ -140,67 +99,6 @@ module.exports = function () {
 					type: 'change',
 					path: source.targetFile
 				});
-			});
-		});
-
-		it( 'should allow file transforms to filter with a RegExp', function () {
-			var count = 0, source = gobble( 'tmp/foo' ), task;
-
-			function checkFilter ( input ) {
-				count++;
-				return input;
-			}
-			checkFilter.defaults = {
-				accept: /foo\.md/
-			};
-
-			task = source.transform( checkFilter ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 1 );
-			});
-		});
-
-		it( 'should allow file transforms to filter with a RegExp and an extension', function () {
-			var count = 0, source = gobble( 'tmp/foo' ), task;
-
-			function checkFilter ( input ) {
-				count++;
-				return input;
-			}
-			checkFilter.defaults = {
-				accept: /foo\.md/,
-				ext: '.txt'
-			};
-
-			task = source.transform( checkFilter ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 1 );
-				assert.deepEqual( sander.lsrSync( 'tmp/output' ).sort(), [ 'foo.txt', 'bar.md', 'baz.md' ].sort() );
-				assert.equal( sander.readFileSync( 'tmp/output/foo.txt', { encoding: 'utf-8' }).trim(), 'foo: this is some text' );
-			});
-		});
-
-		it( 'should skip files for file transforms which return null', function () {
-			var count = 0, source = gobble( 'tmp/foo' ), task;
-
-			function nullFileTransform ( input ) {
-				count++;
-				return ~input.indexOf('foo') ? input : null;
-			}
-
-			task = source.transform( nullFileTransform ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 3 );
-				assert.deepEqual( sander.lsrSync( 'tmp/output' ), [ 'foo.md' ] );
 			});
 		});
 
@@ -364,35 +262,6 @@ module.exports = function () {
 						done();
 					});
 				});
-			});
-		});
-
-		it( 'should use the specified encoding when reading files', function () {
-			var source = gobble( 'tmp/foo' ), count = 0, foundBar = false;
-
-			function plugin ( input, options ) {
-				count++;
-
-				if(this.filename === 'bar.md') {
-					foundBar = true;
-
-					assert.equal(
-						new Buffer( input, 'base64' ).toString('utf8').trim(),
-						'bar: this is some text'
-					);
-				}
-
-				return input.toString( 'base64' );
-			}
-			plugin.defaults = {sourceEncoding: 'base64'};
-
-			task = source.transform( plugin ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 3 );
-				assert( foundBar );
 			});
 		});
 
@@ -573,24 +442,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'skips a transformer if condition is false', function () {
-			var source = gobble( 'tmp/foo' );
-
-			return source
-				.transformIf( false, function ( input ) {
-					return input.toUpperCase();
-				})
-				.build({
-					dest: 'tmp/output'
-				})
-				.then( function () {
-					assert.equal(
-						sander.readFileSync( 'tmp/foo/foo.md' ).toString(),
-						sander.readFileSync( 'tmp/output/foo.md' ).toString()
-					);
-				});
-		});
-
 		it( 'errors on .grab(path1, path2) or .moveTo(path1, path2)', function () {
 			try {
 				var source = gobble( 'tmp/foo' ).grab( 'a', 'b' );
@@ -623,22 +474,6 @@ module.exports = function () {
 			} catch ( err ) {
 				assert.ok( /could not process input/.test( err.message ) );
 			}
-		});
-
-		it( 'should read file as binary data if sourceEncoding === null', function () {
-			var source = gobble( 'tmp/foo' );
-
-			function check ( input ) {
-				assert.ok( input instanceof Buffer );
-			}
-
-			check.defaults = {
-				sourceEncoding: null
-			};
-
-			return source
-				.transform( check )
-				.build({ dest: 'tmp/output' });
 		});
 	});
 };
