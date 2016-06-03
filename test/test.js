@@ -10,6 +10,7 @@ describe( 'gobble', function () {
 	require( './serve' )();
 	require( './watch' )();
 	require( './transform' )();
+	require( './observe' )();
 	require( './initialisation' )();
 	require( './sourcemaps' )();
 	require( './scenarios' )();

@@ -303,23 +303,6 @@ module.exports = function () {
 			task.on( 'error', done );
 		});
 
-		it( 'calls observers on initial build', function () {
-			var observed = 0;
-
-			var source = gobble( 'tmp/foo' ).observe( function ( inputdir, options, done ) {
-				observed += 1;
-				done();
-			});
-
-			task = source.build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( observed, 1 );
-			});
-		});
-
 		it( 'triggers observers on file changes', function ( done ) {
 			var observed = 0;
 
@@ -344,101 +327,6 @@ module.exports = function () {
 					type: 'change',
 					path: 'tmp/foo/foo.md'
 				});
-			});
-		});
-
-		it( 'prevents build completing if observers error', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function () {
-					error = new Error( 'oh noes!' );
-					throw error;
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'prevents build completing if observers fail asynchronously via callback', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function ( inputdir, options, done ) {
-					error = new Error( 'oh noes!' );
-					setTimeout( function () {
-						done( error );
-					});
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'prevents build completing if observers fail asynchronously via promise', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function () {
-					error = new Error( 'oh noes!' );
-					return Promise.reject( error );
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'skips an observer if condition is false', function () {
-			var observed = 0;
-
-			function incrementObservedCount () {
-				observed += 1;
-			}
-
-			var source = gobble( 'tmp/foo' ).observeIf( false, incrementObservedCount );
-
-			task = source.build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( observed, 0 );
 			});
 		});
 
