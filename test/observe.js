@@ -7,7 +7,7 @@ function read (path) {
 }
 
 module.exports = function () {
-	describe.only( 'node.observe()', function () {
+	describe( 'node.observe()', function () {
 		beforeEach( function () {
 			return Promise.all([
 				sander.rimraf( '.gobble-build' ),
