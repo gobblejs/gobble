@@ -329,18 +329,5 @@ module.exports = function () {
 				});
 			});
 		});
-
-		it( 'errors on .grab(path1, path2)', function () {
-			assert.throws( function () {
-				gobble( 'tmp/foo' ).grab( 'a', 'b' );
-			}, /cannot pass multiple strings/ );
-		});
-
-		it( 'errors on .moveTo(path1, path2)', function () {
-			assert.throws( function () {
-				gobble( 'tmp/foo' ).moveTo( 'a', 'b' );
-			}, /cannot pass multiple strings/);
-		});
-
 	});
 };
