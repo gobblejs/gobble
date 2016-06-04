@@ -11,6 +11,7 @@ describe( 'gobble', function () {
 	require( './watch' )();
 	require( './transform' )();
 	require( './observe' )();
+	require( './builtins' )();
 	require( './initialisation' )();
 	require( './sourcemaps' )();
 	require( './scenarios' )();

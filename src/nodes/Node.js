@@ -46,6 +46,14 @@ export default class Node extends EventEmitter2 {
 		return build( this, options );
 	}
 
+	serve ( options ) {
+		return serve( this, options );
+	}
+
+	watch ( options ) {
+		return watch( this, options );
+	}
+
 	createWatchTask () {
 		const node = this;
 		const watchTask = new EventEmitter2({ wildcard: true });
@@ -108,11 +116,6 @@ export default class Node extends EventEmitter2 {
 		return watchTask;
 	}
 
-	exclude ( patterns, options ) {
-		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns, exclude: true, id: options && options.id });
-	}
-
 	getChanges ( inputdir ) {
 		const files = lsrSync( inputdir );
 
@@ -146,17 +149,6 @@ export default class Node extends EventEmitter2 {
 		return added.concat( removed ).concat( changed );
 	}
 
-	grab ( src, options ) {
-		enforceCorrectArguments( options );
-		return new Transformer( this, grab, { src, id: options && options.id });
-	}
-
-	// Built-in transformers
-	include ( patterns, options ) {
-		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns, id: options && options.id });
-	}
-
 	inspect ( target, options ) {
 		target = resolve( config.cwd, target );
 
@@ -173,11 +165,6 @@ export default class Node extends EventEmitter2 {
 		return this.transform( fn, userOptions );
 	}
 
-	moveTo ( dest, options ) {
-		enforceCorrectArguments( options );
-		return new Transformer( this, move, { dest, id: options && options.id });
-	}
-
 	observe ( fn, userOptions ) {
 		if ( typeof fn === 'string' ) {
 			fn = tryToLoad( fn );
@@ -188,10 +175,6 @@ export default class Node extends EventEmitter2 {
 
 	observeIf ( condition, fn, userOptions ) {
 		return condition ? this.observe( fn, userOptions ) : this;
-	}
-
-	serve ( options ) {
-		return serve( this, options );
 	}
 
 	transform ( fn, userOptions ) {
@@ -228,8 +211,25 @@ export default class Node extends EventEmitter2 {
 		return condition ? this.transform( fn, userOptions ) : this;
 	}
 
-	watch ( options ) {
-		return watch( this, options );
+	// Built-in transformers
+	include ( patterns, options ) {
+		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
+		return new Transformer( this, include, { patterns, id: options && options.id });
+	}
+
+	exclude ( patterns, options ) {
+		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
+		return new Transformer( this, include, { patterns, exclude: true, id: options && options.id });
+	}
+
+	grab ( src, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, grab, { src, id: options && options.id });
+	}
+
+	moveTo ( dest, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, move, { dest, id: options && options.id });
 	}
 }
 
