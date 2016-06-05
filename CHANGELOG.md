@@ -1,5 +1,32 @@
 # Changelog
 
+* Reject in promise instead of throwing MISSING_DEST_DIR
+
+## 0.11.3
+
+* Allow `.ext` option to work if `.accept` is a regex ([#97](https://github.com/gobblejs/gobble/issues/97))
+
+## 0.11.2
+
+* Allow file transformers to read binary files with `sourceEncoding: null` ([#105](https://github.com/gobblejs/gobble/issues/105))
+* Emit port info on rebuild ([#gobble-cli/18](https://github.com/gobblejs/gobble-cli/issues/18))
+
+## 0.11.1
+
+* Fix `"main"` in package.json ([#109](https://github.com/gobblejs/gobble/pull/109))
+
+## 0.11.0
+
+* Switch to pathwatcher
+* Support defaults for directory transformers
+* Allow file transformers to return `null`, skipping file
+* Update dependencies
+* Simplify build process
+
+## 0.10.2
+
+* sourceMappingURLs that begin with `data` are not assumed to be data URIs
+
 ## 0.10.1
 
 * CSS sourcemaps are flattened correctly

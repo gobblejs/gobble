@@ -1,16 +1,16 @@
 import { resolve } from 'path';
 import { copydir ,readdir } from 'sander';
 import cleanup from '../../utils/cleanup';
-import session from '../../session';
+import session from '../../session/index.js';
 import GobbleError from '../../utils/GobbleError';
 import flattenSourcemaps from '../../utils/flattenSourcemaps';
 
 export default function ( node, options ) {
 	if ( !options || !options.dest ) {
-		throw new GobbleError({
+		return Promise.reject( new GobbleError({
 			code: 'MISSING_DEST_DIR',
 			task: 'build'
-		});
+		}));
 	}
 
 	const gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble-build' );

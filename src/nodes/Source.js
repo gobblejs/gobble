@@ -1,10 +1,10 @@
 import { basename, relative, resolve } from 'path';
 import { link, linkSync, mkdirSync, statSync, Promise } from 'sander';
-import { watch } from 'graceful-chokidar';
+import { watch } from 'chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
-import session from '../session';
+import session from '../session/index.js';
 import GobbleError from '../utils/GobbleError';
 
 export default class Source extends Node {
@@ -14,6 +14,7 @@ export default class Source extends Node {
 		this.id = options.id || 'source';
 		this.dir = dir;
 		this.callbacks = [];
+		this._entries = {};
 
 		// Ensure the source exists, and is a directory
 		try {
@@ -67,10 +68,10 @@ export default class Source extends Node {
 			linkSync( this.file ).to( this.targetFile );
 		}
 
-		let changes = [];
+		let changed = [];
 
 		const relay = debounce( () => {
-			this.changes = changes.map( change => {
+			this.changes = changed.map( change => {
 				const result = {
 					file: relative( this.dir, change.path )
 				};
@@ -82,8 +83,8 @@ export default class Source extends Node {
 				return result;
 			});
 
-			this.emit( 'invalidate', changes );
-			changes = [];
+			this.emit( 'invalidate', this.changes );
+			changed = [];
 		}, 100 );
 
 		const options = {
@@ -92,14 +93,16 @@ export default class Source extends Node {
 			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
 		};
 
-		this._watcher = watch( this.dir, options );
+		if ( this.dir ) {
+			this._watcher = watch( this.dir, options );
 
-		[ 'add', 'change', 'unlink' ].forEach( type => {
-			this._watcher.on( type, path => {
-				changes.push({ type, path });
-				relay();
+			[ 'add', 'change', 'unlink' ].forEach( type => {
+				this._watcher.on( type, path => {
+					changed.push({ type, path });
+					relay();
+				});
 			});
-		});
+		}
 
 		if ( this.file ) {
 			this._fileWatcher = watch( this.file, options );
@@ -113,10 +116,12 @@ export default class Source extends Node {
 	stopFileWatcher () {
 		if ( this._watcher ) {
 			this._watcher.close();
+			this._watcher = null;
 		}
 
 		if ( this._fileWatcher ) {
 			this._fileWatcher.close();
+			this._fileWatcher = null;
 		}
 
 		this._active = false;

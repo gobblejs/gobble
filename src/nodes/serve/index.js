@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { Promise } from 'sander';
 import * as tinyLr from 'tiny-lr';
 import cleanup from '../../utils/cleanup';
-import session from '../../session';
+import session from '../../session/index.js';
 import GobbleError from '../../utils/GobbleError';
 import handleRequest from './handleRequest';
 
@@ -12,7 +12,6 @@ export default function serve ( node, options = {} ) {
 	const gobbledir = resolve( options.gobbledir || process.env.GOBBLE_TMP_DIR || '.gobble' );
 	const task = session.create({ gobbledir });
 
-	let buildStarted = Date.now();
 	let watchTask;
 	let srcDir;
 	let sourcemapPromises;
@@ -49,7 +48,8 @@ export default function serve ( node, options = {} ) {
 
 			task.emit( 'info', {
 				code: 'BUILD_COMPLETE',
-				duration: Date.now() - buildStart
+				duration: Date.now() - buildStart,
+				port
 			});
 
 			if ( !firedReadyEvent && serverReady ) {

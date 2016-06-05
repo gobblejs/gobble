@@ -1,4 +1,7 @@
-# gobble
+# gobble [![Travis Build Status][travis-img]][travis]
+
+[travis-img]: https://api.travis-ci.org/gobblejs/gobble.svg
+[travis]: https://travis-ci.org/gobblejs/gobblejs
 
 **the last build tool you'll ever need**
 

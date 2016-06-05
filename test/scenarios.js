@@ -1,7 +1,7 @@
 var assert = require( 'assert' );
 var path = require( 'path' );
 var request = require( 'request-promise' );
-var gobble = require( '../tmp' ).default;
+var gobble = require( '..' );
 var sander = require( 'sander' );
 var SourceMapConsumer = require( 'source-map' ).SourceMapConsumer;
 var simulateChange = require( './utils/simulateChange' );
@@ -73,28 +73,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should pass copy of default options to file transformers', function () {
-			var source = gobble( 'tmp/foo' ), count = 0;
-
-			function checkOptions ( input, options ) {
-				assert.equal( options.foo, 'bar' );
-				options.foo = 'baz';
-				count++;
-
-				return input;
-			}
-
-			checkOptions.defaults = { foo: 'bar' };
-
-			task = source.transform( checkOptions ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 3 );
-			});
-		});
-
 		it( 'should allow a single file as a source node (#23)', function ( done ) {
 			var source = gobble( 'tmp/foo/foo.md' ), count = 0;
 
@@ -121,26 +99,6 @@ module.exports = function () {
 					type: 'change',
 					path: source.targetFile
 				});
-			});
-		});
-
-		it( 'should allow file transforms to filter with a RegExp', function () {
-			var count = 0, source = gobble( 'tmp/foo' ), task;
-
-			function checkFilter( input ) {
-				count++;
-				return input;
-			}
-			checkFilter.defaults = {
-				accept: /foo\.md/
-			};
-
-			task = source.transform( checkFilter ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 1 );
 			});
 		});
 
@@ -307,35 +265,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should use the specified encoding when reading files', function () {
-			var source = gobble( 'tmp/foo' ), count = 0, foundBar = false;
-
-			function plugin ( input, options ) {
-				count++;
-
-				if(this.filename === 'bar.md') {
-					foundBar = true;
-
-					assert.equal(
-						new Buffer( input, 'base64' ).toString('utf8').trim(),
-						'bar: this is some text'
-					);
-				}
-
-				return input.toString( 'base64' );
-			}
-			plugin.defaults = {sourceEncoding: 'base64'};
-
-			task = source.transform( plugin ).build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( count, 3 );
-				assert( foundBar );
-			});
-		});
-
 		it( 'handles invalidations that take place during file transformations (#41)', function ( done ) {
 			var source = gobble( 'tmp/foo' );
 			var shouldInvalidate = false;
@@ -374,23 +303,6 @@ module.exports = function () {
 			task.on( 'error', done );
 		});
 
-		it( 'calls observers on initial build', function () {
-			var observed = 0;
-
-			var source = gobble( 'tmp/foo' ).observe( function ( inputdir, options, done ) {
-				observed += 1;
-				done();
-			});
-
-			task = source.build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( observed, 1 );
-			});
-		});
-
 		it( 'triggers observers on file changes', function ( done ) {
 			var observed = 0;
 
@@ -416,153 +328,6 @@ module.exports = function () {
 					path: 'tmp/foo/foo.md'
 				});
 			});
-		});
-
-		it( 'prevents build completing if observers error', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function () {
-					error = new Error( 'oh noes!' );
-					throw error;
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'prevents build completing if observers fail asynchronously via callback', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function ( inputdir, options, done ) {
-					error = new Error( 'oh noes!' );
-					setTimeout( function () {
-						done( error );
-					});
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'prevents build completing if observers fail asynchronously via promise', function () {
-			var source = gobble( 'tmp/foo' );
-			var error, threw;
-
-			var node = source
-				.observe( function () {
-					error = new Error( 'oh noes!' );
-					return Promise.reject( error );
-				});
-
-			return node.build({
-				dest: 'tmp/output'
-			})
-				.catch( function ( err ) {
-					if ( err.original == error ) {
-						threw = true;
-					} else {
-						throw err;
-					}
-				})
-				.then( function () {
-					assert.ok( threw );
-				});
-		});
-
-		it( 'skips an observer if condition is false', function () {
-			var observed = 0;
-
-			function incrementObservedCount () {
-				observed += 1;
-			}
-
-			var source = gobble( 'tmp/foo' ).observeIf( false, incrementObservedCount );
-
-			task = source.build({
-				dest: 'tmp/output'
-			});
-
-			return task.then( function () {
-				assert.equal( observed, 0 );
-			});
-		});
-
-		it( 'skips a transformer if condition is false', function () {
-			var source = gobble( 'tmp/foo' );
-
-			return source
-				.transformIf( false, function ( input ) {
-					return input.toUpperCase();
-				})
-				.build({
-					dest: 'tmp/output'
-				})
-				.then( function () {
-					assert.equal(
-						sander.readFileSync( 'tmp/foo/foo.md' ).toString(),
-						sander.readFileSync( 'tmp/output/foo.md' ).toString()
-					);
-				});
-		});
-
-		it( 'errors on .grab(path1, path2) or .moveTo(path1, path2)', function () {
-			try {
-				var source = gobble( 'tmp/foo' ).grab( 'a', 'b' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /cannot pass multiple strings/.test( err.message ) );
-			}
-
-			try {
-				var source = gobble( 'tmp/foo' ).moveTo( 'a', 'b' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /cannot pass multiple strings/.test( err.message ) );
-			}
-		});
-
-		it( 'errors if you try to pass multiple nodes to gobble()', function () {
-			try {
-				var source = gobble( 'tmp/foo', 'tmp/bar' );
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /could not process input/.test( err.message ) );
-			}
-		});
-
-		it( 'errors if an input array member is invalid', function () {
-			try {
-				var source = gobble([ 42 ]);
-				assert.ok( false );
-			} catch ( err ) {
-				assert.ok( /could not process input/.test( err.message ) );
-			}
 		});
 	});
 };

@@ -1,5 +1,5 @@
 var assert = require( 'assert' ),
-	gobble = require( '../tmp' ).default;
+	gobble = require( '..' );
 
 module.exports = function () {
 	describe( 'gobble.env()', function () {
@@ -16,13 +16,14 @@ module.exports = function () {
 			var tmpCache = {}, gobble;
 
 			Object.keys( require.cache ).forEach( function ( key ) {
+				if ( key.substr(-5) === '.node' ) return;
 				tmpCache[ key ] = require.cache[ key ];
 				delete require.cache[ key ];
 			});
 
 			process.env.GOBBLE_ENV = 'production';
 
-			gobble = require( '../tmp' ).default;
+			gobble = require( '..' );
 			assert.equal( gobble.env(), 'production' );
 
 			Object.keys( require.cache ).forEach( function ( key ) {

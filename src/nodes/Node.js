@@ -3,18 +3,18 @@ import * as crc32 from 'buffer-crc32';
 import { lsrSync, readFileSync, rimraf } from 'sander';
 import { resolve } from 'path';
 import * as requireRelative from 'require-relative';
-import { grab, include, map as mapTransform, move } from '../builtins';
-import { Observer, Transformer } from './index';
-import config from '../config';
-import GobbleError from '../utils/GobbleError';
-import assign from '../utils/assign';
-import warnOnce from '../utils/warnOnce';
-import compareBuffers from '../utils/compareBuffers';
-import serve from './serve';
-import build from './build';
-import watch from './watch';
-import { isRegExp } from '../utils/is';
-import { ABORTED } from '../utils/signals';
+import { grab, include, map as mapTransform, move } from '../builtins/index.js';
+import { Observer, Transformer } from './index.js';
+import config from '../config/index.js';
+import GobbleError from '../utils/GobbleError.js';
+import assign from '../utils/assign.js';
+import warnOnce from '../utils/warnOnce.js';
+import compareBuffers from '../utils/compareBuffers.js';
+import serve from './serve/index.js';
+import build from './build/index.js';
+import watch from './watch/index.js';
+import { isRegExp } from '../utils/is.js';
+import { ABORTED } from '../utils/signals.js';
 
 // TODO remove this in a future version
 function enforceCorrectArguments ( options ) {
@@ -25,10 +25,10 @@ function enforceCorrectArguments ( options ) {
 
 export default class Node extends EventEmitter2 {
 	constructor () {
-		this._gobble = true; // makes life easier for e.g. gobble-cli
-
 		// initialise event emitter
 		super({ wildcard: true });
+
+		this._gobble = true; // makes life easier for e.g. gobble-cli
 
 		this.counter = 1;
 		this.inspectTargets = [];
@@ -44,6 +44,14 @@ export default class Node extends EventEmitter2 {
 
 	build ( options ) {
 		return build( this, options );
+	}
+
+	serve ( options ) {
+		return serve( this, options );
+	}
+
+	watch ( options ) {
+		return watch( this, options );
 	}
 
 	createWatchTask () {
@@ -108,11 +116,6 @@ export default class Node extends EventEmitter2 {
 		return watchTask;
 	}
 
-	exclude ( patterns, options ) {
-		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns, exclude: true, id: options && options.id });
-	}
-
 	getChanges ( inputdir ) {
 		const files = lsrSync( inputdir );
 
@@ -146,17 +149,6 @@ export default class Node extends EventEmitter2 {
 		return added.concat( removed ).concat( changed );
 	}
 
-	grab ( src, options ) {
-		enforceCorrectArguments( options );
-		return new Transformer( this, grab, { src, id: options && options.id });
-	}
-
-	// Built-in transformers
-	include ( patterns, options ) {
-		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
-		return new Transformer( this, include, { patterns, id: options && options.id });
-	}
-
 	inspect ( target, options ) {
 		target = resolve( config.cwd, target );
 
@@ -173,11 +165,6 @@ export default class Node extends EventEmitter2 {
 		return this.transform( fn, userOptions );
 	}
 
-	moveTo ( dest, options ) {
-		enforceCorrectArguments( options );
-		return new Transformer( this, move, { dest, id: options && options.id });
-	}
-
 	observe ( fn, userOptions ) {
 		if ( typeof fn === 'string' ) {
 			fn = tryToLoad( fn );
@@ -188,10 +175,6 @@ export default class Node extends EventEmitter2 {
 
 	observeIf ( condition, fn, userOptions ) {
 		return condition ? this.observe( fn, userOptions ) : this;
-	}
-
-	serve ( options ) {
-		return serve( this, options );
 	}
 
 	transform ( fn, userOptions ) {
@@ -228,8 +211,25 @@ export default class Node extends EventEmitter2 {
 		return condition ? this.transform( fn, userOptions ) : this;
 	}
 
-	watch ( options ) {
-		return watch( this, options );
+	// Built-in transformers
+	include ( patterns, options ) {
+		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
+		return new Transformer( this, include, { patterns, id: options && options.id });
+	}
+
+	exclude ( patterns, options ) {
+		if ( typeof patterns === 'string' ) { patterns = [ patterns ]; }
+		return new Transformer( this, include, { patterns, exclude: true, id: options && options.id });
+	}
+
+	grab ( src, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, grab, { src, id: options && options.id });
+	}
+
+	moveTo ( dest, options ) {
+		enforceCorrectArguments( options );
+		return new Transformer( this, move, { dest, id: options && options.id });
 	}
 }
 
