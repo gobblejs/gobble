@@ -25,7 +25,6 @@ export default function ( node, options ) {
 		task.emit( 'info', {
 			code: 'BUILD_START'
 		});
-		node.start();
 
 		node.on( 'info', details => {
 			if ( details === previousDetails ) return;
@@ -38,7 +37,9 @@ export default function ( node, options ) {
 				return copydir( inputdir ).to( dest )
 					.then( () => flattenSourcemaps( inputdir, dest, dest, task ) );
 			})
-			.then( () => node.stop() ); // TODO should not need to stop...
+			.then( () => {
+				node.teardown();
+			});
 	}
 
 	promise = cleanup( gobbledir )

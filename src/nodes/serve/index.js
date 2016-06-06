@@ -66,7 +66,10 @@ export default function serve ( node, options = {} ) {
 	};
 
 	task.close = () => {
-		if ( node ) node.stop();
+		if ( watchTask ) {
+			watchTask.close();
+			node.teardown();
+		}
 
 		return new Promise( fulfil => {
 			session.destroy();
@@ -78,7 +81,13 @@ export default function serve ( node, options = {} ) {
 	task.pause = () => {
 		error = { gobble: 'WAITING' };
 
-		if ( node ) node.stop();
+		buildStarted = Date.now();
+
+		if ( watchTask ) {
+			watchTask.close();
+			node.teardown();
+		}
+
 		node = null;
 
 		return cleanup( gobbledir );

@@ -60,6 +60,7 @@ export default function watch ( node, options ) {
 
 	task.close = () => {
 		watchTask.close();
+		node.teardown();
 		session.destroy();
 
 		return Promise.resolve(); // for consistency with serve task
@@ -68,6 +69,7 @@ export default function watch ( node, options ) {
 	task.pause = () => {
 		if ( watchTask ) {
 			watchTask.close();
+			node.teardown();
 		}
 
 		watchTask = null;

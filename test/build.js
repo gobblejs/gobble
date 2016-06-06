@@ -23,15 +23,6 @@ module.exports = function () {
 			});
 		});
 
-		it( 'should stop completion of build', function () {
-			var node = gobble( 'tmp/foo' );
-			return node.build({
-				dest: 'tmp/output'
-			}).then( function () {
-				assert.equal( node.active(), false );
-			});
-		});
-
 		it( 'should throw an error if no `dest` is specified', function () {
 			return gobble( 'tmp/foo' ).build().then( function () {
 				assert.fail();
