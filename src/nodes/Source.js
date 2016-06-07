@@ -130,12 +130,6 @@ export default class Source extends Node {
 					relay();
 				});
 			});
-		}
-
-			this._watcher.on( 'unlink', () => {
-				changes.push({ type: 'unlink', path: this.targetFile });
-				unlinkSync( this.targetFile );
-			});
 		} else {
 			this._watcher = watch( this.dir, options );
 
