@@ -1,5 +1,5 @@
 import { EventEmitter2 } from 'eventemitter2';
-import * as crc32 from 'buffer-crc32';
+import { crc32 } from 'crc';
 import { lsrSync, readFileSync, rimraf } from 'sander';
 import { resolve } from 'path';
 import * as requireRelative from 'require-relative';
@@ -9,7 +9,6 @@ import config from '../config/index.js';
 import GobbleError from '../utils/GobbleError.js';
 import assign from '../utils/assign.js';
 import warnOnce from '../utils/warnOnce.js';
-import compareBuffers from '../utils/compareBuffers.js';
 import serve from './serve/index.js';
 import build from './build/index.js';
 import watch from './watch/index.js';
@@ -137,7 +136,7 @@ export default class Node extends EventEmitter2 {
 		const changed = files.filter( file => ~this._files.indexOf( file ) ).reduce( ( result, file ) => {
 			const checksum = crc32( readFileSync( inputdir, file ) );
 
-			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
+			if ( checksum !== this._checksums[ file ] ) {
 				result.push({ file, changed: true });
 				this._checksums[ file ] = checksum;
 			}
