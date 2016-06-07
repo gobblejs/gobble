@@ -131,22 +131,21 @@ export default class Node extends EventEmitter2 {
 		}
 
 		const added = files.filter( file => !~this._files.indexOf( file ) ).map( file => ({ file, added: true }) );
+
 		const removed = this._files.filter( file => !~files.indexOf( file ) ).map( file => ({ file, removed: true }) );
 
-		const maybeChanged = files.filter( file => ~this._files.indexOf( file ) );
-
-		let changed = [];
-
-		maybeChanged.forEach( file => {
-			let checksum = crc32( readFileSync( inputdir, file ) );
+		const changed = files.filter( file => ~this._files.indexOf( file ) ).reduce( ( result, file ) => {
+			const checksum = crc32( readFileSync( inputdir, file ) );
 
 			if ( !compareBuffers( checksum, this._checksums[ file ] ) ) {
-				changed.push({ file, changed: true });
+				result.push({ file, changed: true });
 				this._checksums[ file ] = checksum;
 			}
-		});
 
-		return added.concat( removed ).concat( changed );
+			return result;
+		}, []);
+
+		return added.concat( removed, changed );
 	}
 
 	inspect ( target, options ) {
