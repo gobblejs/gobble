@@ -1,6 +1,7 @@
 # Changelog
 
 * Reject in promise instead of throwing MISSING_DEST_DIR
+* In file transformers, use the destination filename extension to decide the sourcemap comment style. ([#116](https://github.com/gobblejs/gobble/issues/116))
 
 ## 0.11.3
 
