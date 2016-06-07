@@ -109,7 +109,7 @@ function processResult ( result, original, src, dest, codepath ) {
 		// if a sourcemap was returned, use it
 		if ( result.map ) {
 			return {
-				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( codepath ) ),
+				code: result.code.replace( SOURCEMAP_COMMENT, '' ) + getSourcemapComment( encodeURI( codepath + '.map' ), extname( dest ) ),
 				map: processSourcemap( result.map, src, dest, original )
 			};
 		}
