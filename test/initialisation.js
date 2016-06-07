@@ -32,7 +32,7 @@ module.exports = function () {
 			}, /could not process input/ );
 		});
 
-		it.only( 'gets changes', function () {
+		it( 'gets changes', function () {
 			var node = gobble( 'tmp' );
 			var changes1 = node.getChanges( 'tmp' );
 			assert.equal( changes1.length, 13 );
