@@ -1,12 +1,12 @@
 import { basename, relative, resolve } from 'path';
-import { linkSync, lsr, readFileSync, statSync, unlinkSync } from 'sander';
+import { lsr, link, linkSync, readFileSync, mkdirSync, statSync, unlinkSync, Promise } from 'sander';
+import queue from '../queue/index.js';
 import { crc32 } from 'crc';
-import { watch } from 'graceful-chokidar';
+import { watch } from 'chokidar';
 import * as debounce from 'debounce';
 import Node from './Node';
 import uid from '../utils/uid';
-import session from '../session';
-import queue from '../queue';
+import session from '../session/index.js';
 import GobbleError from '../utils/GobbleError';
 
 export default class Source extends Node {
@@ -17,6 +17,8 @@ export default class Source extends Node {
 		this.dir = dir;
 		this.checksumByFile = {};
 		this.fileByChecksum = {};
+		this.callbacks = [];
+		this._entries = {};
 
 		// Ensure the source exists, and is a directory
 		try {
@@ -94,10 +96,10 @@ export default class Source extends Node {
 
 		this._active = true;
 
-		let changes = [];
+		let changed = [];
 
 		const relay = debounce( () => {
-			this.changes = changes.map( change => {
+			this.changes = changed.map( change => {
 				const result = {
 					file: relative( this.dir, change.path )
 				};
@@ -109,8 +111,8 @@ export default class Source extends Node {
 				return result;
 			});
 
-			this.emit( 'invalidate', changes );
-			changes = [];
+			this.emit( 'invalidate', this.changes );
+			changed = [];
 		}, 100 );
 
 		const options = {
@@ -119,16 +121,16 @@ export default class Source extends Node {
 			useFsEvents: false // see https://github.com/paulmillr/chokidar/issues/146
 		};
 
-		if ( this.isFileSource ) {
-			this._watcher = watch( this.file, options );
+		if ( this.dir ) {
+			this._watcher = watch( this.dir, options );
 
-			[ 'add', 'change' ].forEach( type => {
-				this._watcher.on( type, () => {
-					linkSync( this.file ).to( this.targetFile );
-					changes.push({ type, path: this.targetFile });
+			[ 'add', 'change', 'unlink' ].forEach( type => {
+				this._watcher.on( type, path => {
+					changed.push({ type, path });
 					relay();
 				});
 			});
+		}
 
 			this._watcher.on( 'unlink', () => {
 				changes.push({ type: 'unlink', path: this.targetFile });
@@ -149,6 +151,12 @@ export default class Source extends Node {
 	stopFileWatcher () {
 		if ( this._watcher ) {
 			this._watcher.close();
+			this._watcher = null;
+		}
+
+		if ( this._fileWatcher ) {
+			this._fileWatcher.close();
+			this._fileWatcher = null;
 		}
 
 		this._active = false;

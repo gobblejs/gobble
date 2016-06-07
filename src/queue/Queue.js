@@ -3,9 +3,9 @@ import { Promise } from 'sander';
 
 export default class Queue extends EventEmitter2 {
 	constructor () {
-		var queue = this;
-
 		super({ wildcard: true });
+
+		var queue = this;
 
 		queue._tasks = [];
 

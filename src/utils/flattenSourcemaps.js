@@ -37,7 +37,7 @@ export default function flattenSourcemaps ( node, inputdir, outputdir, base, tas
 				.catch( err => {
 					task.emit( 'error', err );
 				});
-			});
+		});
 	})
 	.then( () => inputdir );
 }

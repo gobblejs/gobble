@@ -1,11 +1,11 @@
 import * as sander from 'sander';
 import Node from './Node';
-import queue from '../queue';
+import queue from '../queue/index.js';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import uid from '../utils/uid';
 import makeLog from '../utils/makeLog';
-import config from '../config';
+import config from '../config/index.js';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { ABORTED } from '../utils/signals';
 

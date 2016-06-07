@@ -6,4 +6,4 @@ node_modules
 .babel
 .esperanto
 tmp
-lib
+dist

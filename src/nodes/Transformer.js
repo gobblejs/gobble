@@ -2,13 +2,13 @@ import { join, resolve } from 'path';
 import * as sander from 'sander';
 import { mkdir, readdirSync, rimrafSync } from 'sander';
 import Node from './Node';
-import session from '../session';
-import queue from '../queue';
+import session from '../session/index.js';
+import queue from '../queue/index.js';
 import GobbleError from '../utils/GobbleError';
 import assign from '../utils/assign';
 import uid from '../utils/uid';
 import makeLog from '../utils/makeLog';
-import config from '../config';
+import config from '../config/index.js';
 import warnOnce from '../utils/warnOnce';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { ABORTED } from '../utils/signals';
@@ -20,7 +20,7 @@ export default class Transformer extends Node {
 		this.input = input;
 
 		this.transformer = transformer;
-		this.options = assign( {}, options );
+		this.options = assign( {}, transformer.defaults, options );
 
 		this.name = id || this.options.id || transformer.id || transformer.name || 'unknown';
 		this.id = uid( this.name );

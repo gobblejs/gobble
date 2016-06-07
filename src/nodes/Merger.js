@@ -16,7 +16,7 @@ import {
 } from 'sander';
 import * as mapSeries from 'promise-map-series';
 import Node from './Node';
-import session from '../session';
+import session from '../session/index.js';
 import uid from '../utils/uid';
 import { ABORTED } from '../utils/signals';
 

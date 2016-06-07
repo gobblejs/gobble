@@ -1,9 +1,9 @@
 import { extname, join, resolve } from 'path';
 import * as chalk from 'chalk';
-import Queue from '../queue/Queue';
+import Queue from '../queue/Queue.js';
 import { lsr, readFile, symlinkOrCopy, writeFile, Promise } from 'sander';
 import assign from '../utils/assign';
-import config from '../config';
+import config from '../config/index.js';
 import extractLocationInfo from '../utils/extractLocationInfo';
 import { isRegExp } from '../utils/is';
 import { ABORTED } from '../utils/signals';
@@ -27,18 +27,17 @@ export default function map ( inputdir, outputdir, options ) {
 				if ( this.aborted ) return;
 
 				const ext = extname( filename );
-
-				// change extension if necessary, e.g. foo.coffee -> foo.js
-				const destname = ( options.ext && ~options.accept.indexOf( ext ) ) ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
-
 				const src = join( inputdir, filename );
-				const dest = join( outputdir, destname );
 
 				// If this mapper only accepts certain extensions, and this isn't
 				// one of them, just copy the file
 				if ( shouldSkip( options, ext, filename ) ) {
-					return symlinkOrCopy( src ).to( dest );
+					return symlinkOrCopy( src ).to( outputdir, filename );
 				}
+
+				// change extension if necessary, e.g. foo.coffee -> foo.js
+				const destname = options.ext ? filename.substr( 0, filename.length - ext.length ) + options.ext : filename;
+				const dest = join( outputdir, destname );
 
 				// If this file *does* fall within this transformer's remit, but
 				// hasn't changed, we just copy the cached file
@@ -64,8 +63,9 @@ export default function map ( inputdir, outputdir, options ) {
 					delete transformOptions.accept;
 					delete transformOptions.ext;
 
-					return readFile( src )
-						.then( buffer => buffer.toString( transformOptions.sourceEncoding ) )
+					const encoding = 'sourceEncoding' in transformOptions ? transformOptions.sourceEncoding : 'utf-8';
+
+					return readFile( src, { encoding })
 						.then( data => {
 							if ( this.aborted ) return reject( ABORTED );
 
@@ -78,6 +78,8 @@ export default function map ( inputdir, outputdir, options ) {
 								return reject( err );
 							}
 
+							if ( result === null ) return fulfil();
+
 							const codepath = resolve( this.cachedir, filename );
 
 							const { code, map } = processResult( result, data, src, dest, codepath );
@@ -85,9 +87,9 @@ export default function map ( inputdir, outputdir, options ) {
 							writeToCacheDir( code, map, codepath, dest )
 								.then( () => symlinkOrCopy( codepath ).to( dest ) )
 								.then( () => options.cache[ filename ] = codepath )
-								.then( fulfil )
-								.catch( reject );
-						});
+								.then( fulfil );
+						})
+						.catch( reject );
 				}).catch( err => {
 					queue.abort();
 					throw err;
@@ -125,12 +127,16 @@ function processResult ( result, original, src, dest, codepath ) {
 	return { code: result, map: null };
 }
 
+function isDataURI ( str ) {
+	return /^data:/.test( str ); // TODO beef this up
+}
+
 function processInlineSourceMap ( code, src, dest, original, codepath ) {
 	// if there's an inline sourcemap, process it
 	let match = SOURCEMAP_COMMENT.exec( code );
 	let map = null;
 
-	if ( match && /^data/.test( match[1] ) ) {
+	if ( match && isDataURI( match[1] ) ) {
 		match = /base64,(.+)$/.exec( match[1] );
 
 		if ( !match ) {

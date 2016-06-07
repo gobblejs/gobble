@@ -1,5 +1,5 @@
 import { basename, extname } from 'path';
-import { lookup } from 'mime';
+import * as mime from 'mime';
 import { readFile, stat, createReadStream } from 'sander';
 import { getSourcemapComment, SOURCEMAP_COMMENT } from '../../utils/sourcemap';
 
@@ -15,7 +15,7 @@ export default function serveFile ( filepath, request, response ) {
 			data = data.toString().replace( SOURCEMAP_COMMENT, sourcemapComment );
 
 			response.statusCode = 200;
-			response.setHeader( 'Content-Type', lookup( filepath ) );
+			response.setHeader( 'Content-Type', mime.lookup( filepath ) );
 
 			response.write( data );
 			response.end();
@@ -24,7 +24,7 @@ export default function serveFile ( filepath, request, response ) {
 
 	return stat( filepath ).then( stats => {
 		response.statusCode = 200;
-		response.setHeader( 'Content-Type', lookup( filepath ) );
+		response.setHeader( 'Content-Type', mime.lookup( filepath ) );
 		response.setHeader( 'Content-Length', stats.size );
 
 		createReadStream( filepath ).pipe( response );
