@@ -81,8 +81,6 @@ export default function serve ( node, options = {} ) {
 	task.pause = () => {
 		error = { gobble: 'WAITING' };
 
-		buildStarted = Date.now();
-
 		if ( watchTask ) {
 			watchTask.close();
 			node.teardown();

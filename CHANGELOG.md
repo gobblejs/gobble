@@ -1,7 +1,12 @@
 # Changelog
 
+## 0.12.0
+
+* Switch to chokidar ([#115](https://github.com/gobblejs/gobble/pull/115))
 * Reject in promise instead of throwing MISSING_DEST_DIR
 * In file transformers, use the destination filename extension to decide the sourcemap comment style. ([#116](https://github.com/gobblejs/gobble/issues/116))
+* Separate file watching from building ([#74](https://github.com/gobblejs/gobble/pull/74))
+* Add a load of tests
 
 ## 0.11.3
 
