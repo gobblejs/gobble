@@ -12,7 +12,7 @@ export default function serveFile ( filepath, request, response ) {
 			// this takes the auto-generated absolute sourcemap path, and turns
 			// it into what you'd get with `gobble build` or `gobble watch`
 			const sourcemapComment = getSourcemapComment( basename( filepath ) + '.map', ext );
-			data = data.toString().replace( SOURCEMAP_COMMENT, sourcemapComment );
+			data = data.toString().replace( SOURCEMAP_COMMENT, "" ) + sourcemapComment;
 
 			response.statusCode = 200;
 			response.setHeader( 'Content-Type', mime.lookup( filepath ) );

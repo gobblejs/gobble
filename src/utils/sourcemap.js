@@ -2,9 +2,9 @@ let SOURCEMAPPING_URL = 'sourceMa';
 SOURCEMAPPING_URL += 'ppingURL';
 
 const SOURCEMAP_COMMENT = new RegExp( `\n*(?:` +
-	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+)|` +      // js
-	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+)\\s\\+\\/)` + // css
-'\\s*$', 'g' );
+	`\\/\\/[@#]\\s*${SOURCEMAPPING_URL}=([^'"]+?)|` +      // js
+	`\\/\\*#?\\s*${SOURCEMAPPING_URL}=([^'"]+?)\\s\\+\\/)` + // css
+'\\s*($|\n)', 'g' );
 
 function getSourcemapComment ( url, ext ) {
 	if ( ext === '.css' ) {
