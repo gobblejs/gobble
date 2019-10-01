@@ -36,7 +36,7 @@
     "gobble"
   ],
   "devDependencies": {
-    "eslint": "^2.8.0",
+    "eslint": "^6.5.1",
     "gobble-coffee": "^0.2.1",
     "gobble-uglifyjs": "^0.2.1",
     "mocha": "^2.4.5",
